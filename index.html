@@ -3,47 +3,56 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title>CognitiveCare</title>
+  <title>CognitiveCare Enterprise — Mobile Patient Assistant</title>
 
-  <!-- Google Fonts -->
+  <!-- Typography & Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400;1,600&display=swap" rel="stylesheet">
 
-  <!-- Firebase Compat SDKs -->
+  <!-- Chart Engine -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+  <!-- Firebase v10 Compat Layer -->
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
 
   <style>
     /* ==========================================================================
-       1. ANDROID ACCESSIBILITY & SAFE-AREA DESIGN SYSTEM
+       ENTERPRISE CSS TOKENS & ACCESSIBILITY DESIGN SYSTEM
        ========================================================================== */
     :root {
       --font-scale: 1.05rem;
-      --bg: #f4f9fd;
+      --bg: #f4f8fc;
       --surface: #ffffff;
-      --surface-subtle: #eaf3fb;
-      --border: #cfe2f3;
-      --text: #0a2540;
-      --text-muted: #486581;
+      --surface-subtle: #ebf3fa;
+      --surface-hover: #e0eef8;
+      --border: #cee1f2;
+      --border-focus: #0284c7;
+      --text: #0c253d;
+      --text-muted: #526f8a;
+      --text-subtle: #7995ae;
       --primary: #0284c7;
       --primary-hover: #0369a1;
       --primary-light: #e0f2fe;
+      --primary-focus: rgba(2, 132, 199, 0.25);
       --lady-ai: #db2777;
       --lady-ai-light: #fce7f3;
+      --lady-ai-hover: #be185d;
       --success: #16a34a;
       --success-light: #dcfce7;
       --warning: #d97706;
       --warning-light: #fef3c7;
       --danger: #dc2626;
       --danger-light: #fee2e2;
-      --radius-lg: 22px;
-      --radius-md: 16px;
-      --radius-sm: 10px;
-      --shadow: 0 4px 16px rgba(10, 37, 64, 0.08);
-      
-      /* Safe area insets for Android notches & navigation bars */
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --shadow-sm: 0 2px 6px rgba(12, 37, 61, 0.05);
+      --shadow-md: 0 6px 18px rgba(12, 37, 61, 0.08);
+      --shadow-lg: 0 12px 32px rgba(12, 37, 61, 0.12);
       --sat: env(safe-area-inset-top, 0px);
       --sab: env(safe-area-inset-bottom, 0px);
     }
@@ -51,32 +60,43 @@
     body.high-contrast {
       --bg: #000000;
       --surface: #121212;
-      --surface-subtle: #242424;
+      --surface-subtle: #1e1e1e;
+      --surface-hover: #2d2d2d;
       --border: #555555;
+      --border-focus: #00e5ff;
       --text: #ffffff;
       --text-muted: #e2e8f0;
-      --primary: #38bdf8;
-      --primary-light: #163658;
+      --text-subtle: #cbd5e1;
+      --primary: #00d4ff;
+      --primary-hover: #38bdf8;
+      --primary-light: #082f49;
       --success: #22c55e;
       --warning: #fbbf24;
       --danger: #ef4444;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-    
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
     body {
-      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
       font-size: var(--font-scale);
-      background: var(--bg);
+      background-color: var(--bg);
       color: var(--text);
       min-height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow-x: hidden;
       user-select: none;
+      -webkit-user-select: none;
     }
 
-    /* Top Sticky Android Header */
-    header {
+    /* Sticky Mobile Header */
+    header.app-header {
       background: var(--surface);
       border-bottom: 2px solid var(--border);
       padding: calc(12px + var(--sat)) 18px 12px;
@@ -85,61 +105,98 @@
       align-items: center;
       position: sticky;
       top: 0;
-      z-index: 50;
-      box-shadow: var(--shadow);
+      z-index: 60;
+      box-shadow: var(--shadow-sm);
     }
 
-    .brand { display: flex; align-items: center; gap: 10px; }
+    .brand-cluster {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
     .brand-icon {
       font-size: 1.8rem;
       background: var(--primary-light);
-      width: 44px; height: 44px;
+      width: 44px;
+      height: 44px;
       border-radius: var(--radius-md);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
     }
-    .brand-title { font-size: 1.25rem; font-weight: 800; color: var(--primary); }
-    .brand-subtitle { font-size: 0.72rem; color: var(--text-muted); font-weight: 600; text-transform: uppercase; }
 
-    /* Lady AI Interactive Indicator */
-    .lady-ai-btn {
+    .brand-info h1 {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--primary);
+      letter-spacing: -0.02em;
+      line-height: 1.1;
+    }
+
+    .brand-info p {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* Lady AI Speaking Avatar Badge */
+    .lady-ai-trigger {
       display: flex;
       align-items: center;
       gap: 8px;
       background: var(--lady-ai-light);
       border: 2px solid var(--lady-ai);
       padding: 6px 14px;
-      border-radius: 999px;
+      border-radius: var(--radius-full);
       color: #9d174d;
       font-weight: 800;
       font-size: 0.82rem;
       cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease;
     }
+    .lady-ai-trigger:active { transform: scale(0.96); }
+
     .lady-avatar {
-      width: 24px; height: 24px;
+      width: 24px;
+      height: 24px;
       background: var(--lady-ai);
       color: white;
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 0.8rem;
       position: relative;
     }
     .lady-avatar.speaking::after {
       content: '';
       position: absolute;
-      width: 100%; height: 100%;
+      width: 100%;
+      height: 100%;
       border-radius: 50%;
-      border: 2px solid var(--lady-ai);
-      animation: pulse 1s infinite;
+      border: 2.5px solid var(--lady-ai);
+      animation: pulseRings 1s infinite;
     }
-    @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+    @keyframes pulseRings {
+      0% { transform: scale(1); opacity: 1; }
+      100% { transform: scale(1.7); opacity: 0; }
+    }
 
-    /* Senior Accessibility Tools */
-    .acc-bar {
+    /* Accessibility Controls */
+    .acc-cluster {
       display: flex;
       align-items: center;
-      gap: 4px;
       background: var(--surface-subtle);
-      border: 1px solid var(--border);
+      border: 1.5px solid var(--border);
       border-radius: var(--radius-sm);
       padding: 2px 4px;
     }
@@ -152,27 +209,35 @@
       color: var(--text);
       cursor: pointer;
     }
+    .acc-btn:active { background: rgba(0,0,0,0.08); }
 
-    /* Main Screen Viewport */
-    .main-viewport {
+    /* Main Content Wrapper */
+    main.viewport {
       flex: 1;
       padding: 16px 16px calc(80px + var(--sab));
-      max-width: 680px;
+      max-width: 720px;
       margin: 0 auto;
       width: 100%;
     }
 
-    .screen-view { display: none; animation: fadeIn 0.2s ease-out; }
-    .screen-view.active { display: block; }
-    @keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+    .view-screen {
+      display: none;
+      animation: slideIn 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    .view-screen.active { display: block; }
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateY(6px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
 
+    /* Cards */
     .card {
       background: var(--surface);
       border-radius: var(--radius-lg);
       border: 1.5px solid var(--border);
-      padding: 20px;
+      padding: 22px;
       margin-bottom: 18px;
-      box-shadow: var(--shadow);
+      box-shadow: var(--shadow-sm);
     }
     .card-title {
       font-size: 1.25rem;
@@ -183,8 +248,100 @@
       justify-content: space-between;
     }
 
-    /* Large Senior-Friendly Routine Buttons */
-    .routine-item {
+    /* Form Fields */
+    .form-group { margin-bottom: 16px; }
+    .form-group label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+    .form-control {
+      width: 100%;
+      padding: 14px 16px;
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-family: inherit;
+      background: var(--surface-subtle);
+      color: var(--text);
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #ffffff;
+      box-shadow: 0 0 0 4px var(--primary-focus);
+    }
+
+    /* Dementia Stage Selector Cards */
+    .stage-card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin: 16px 0 20px;
+    }
+    .stage-card {
+      background: var(--surface-subtle);
+      border: 2.5px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 16px 12px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .stage-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      box-shadow: 0 4px 16px rgba(2, 132, 199, 0.2);
+    }
+    .stage-card h4 { font-size: 1.05rem; font-weight: 800; margin-bottom: 4px; }
+    .stage-card p { font-size: 0.78rem; color: var(--text-muted); line-height: 1.35; }
+    .stage-pill {
+      display: inline-block;
+      margin-top: 8px;
+      font-size: 0.72rem;
+      font-weight: 800;
+      padding: 3px 8px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+    }
+    .stage-card.early .stage-pill { background: #fee2e2; color: #991b1b; }
+    .stage-card.middle .stage-pill { background: #fef3c7; color: #92400e; }
+    .stage-card.late .stage-pill { background: #dcfce7; color: #15803d; }
+
+    /* Interactive Buttons */
+    .btn {
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 800;
+      padding: 15px 22px;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      width: 100%;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+    .btn:active { transform: scale(0.98); }
+    .btn-primary { background: var(--primary); color: #ffffff; }
+    .btn-primary:active { background: var(--primary-hover); }
+    .btn-secondary { background: var(--surface-subtle); border: 2px solid var(--border); color: var(--text); }
+    .btn-danger { background: var(--danger); color: #ffffff; }
+    .btn-sos {
+      background: linear-gradient(135deg, #ef4444, #b91c1c);
+      color: #ffffff;
+      font-size: 1.25rem;
+      padding: 18px;
+      border-radius: var(--radius-lg);
+      box-shadow: 0 4px 20px rgba(220, 38, 38, 0.35);
+    }
+
+    /* Senior-Friendly Routines */
+    .routine-box {
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -196,7 +353,7 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .routine-item.done {
+    .routine-box.completed {
       background: var(--success-light);
       border-color: var(--success);
       opacity: 0.85;
@@ -205,86 +362,127 @@
     .routine-icon { font-size: 2.2rem; }
     .routine-name { font-size: 1.15rem; font-weight: 800; }
     .routine-time { font-size: 0.85rem; color: var(--text-muted); font-weight: 600; }
-    .routine-check {
-      width: 36px; height: 36px;
+    .routine-checkmark {
+      width: 36px;
+      height: 36px;
       border-radius: 50%;
       border: 3px solid var(--border);
       background: var(--surface);
-      display: flex; align-items: center; justify-content: center;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       font-size: 1.2rem;
       font-weight: 800;
       color: white;
     }
-    .routine-item.done .routine-check {
+    .routine-box.completed .routine-checkmark {
       background: var(--success);
       border-color: var(--success);
     }
 
-    /* Big Action Buttons */
-    .btn {
-      font-family: inherit;
-      font-size: 1.05rem;
-      font-weight: 800;
-      padding: 16px 24px;
-      border-radius: var(--radius-md);
-      border: none;
-      cursor: pointer;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      gap: 10px;
-      width: 100%;
-      transition: all 0.2s;
-    }
-    .btn-primary { background: var(--primary); color: white; }
-    .btn-primary:active { background: var(--primary-hover); transform: scale(0.98); }
-    .btn-secondary { background: var(--surface-subtle); border: 2px solid var(--border); color: var(--text); }
-    .btn-danger { background: var(--danger); color: white; }
-    .btn-sos {
-      background: linear-gradient(135deg, #ef4444, #dc2626);
-      color: white;
-      font-size: 1.25rem;
-      padding: 18px;
-      box-shadow: 0 4px 16px rgba(220, 38, 38, 0.35);
-      border-radius: var(--radius-lg);
-    }
-
-    /* Live IoT Sensor Dashboard */
+    /* IoT Dashboard Grid */
     .iot-grid {
       display: grid;
-      grid-template-columns: 1fr 1fr;
+      grid-template-columns: repeat(2, 1fr);
       gap: 12px;
       margin-bottom: 16px;
     }
-    .sensor-box {
+    .sensor-tile {
       background: var(--surface-subtle);
       border: 1.5px solid var(--border);
       border-radius: var(--radius-md);
       padding: 16px;
       text-align: center;
     }
-    .sensor-box.highlight {
+    .sensor-tile.primary-tile {
       border-color: var(--primary);
       background: var(--primary-light);
     }
-    .sensor-val { font-size: 1.8rem; font-weight: 800; color: var(--primary); margin: 4px 0; }
+    .sensor-val { font-size: 1.85rem; font-weight: 800; color: var(--primary); margin: 4px 0; }
     .sensor-lbl { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
 
-    /* Voice Transcript Box */
-    .voice-command-box {
-      background: var(--lady-ai-light);
-      border: 2px dashed var(--lady-ai);
-      border-radius: var(--radius-md);
-      padding: 16px;
-      text-align: center;
-      margin-bottom: 16px;
+    /* 10-Game Arena Dynamic Styles */
+    .arena-box {
+      background: var(--surface-subtle);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 18px 0;
+      position: relative;
     }
+
+    .memory-grid {
+      display: grid;
+      gap: 12px;
+      width: 100%;
+      max-width: 520px;
+      margin: 0 auto;
+    }
+    .grid-2 { grid-template-columns: repeat(2, 1fr); max-width: 300px; }
+    .grid-8 { grid-template-columns: repeat(4, 1fr); }
+    .grid-12 { grid-template-columns: repeat(4, 1fr); }
+
+    .mem-card {
+      aspect-ratio: 1;
+      cursor: pointer;
+      position: relative;
+      user-select: none;
+    }
+    .mem-card-inner {
+      width: 100%;
+      height: 100%;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.35s ease;
+      border-radius: var(--radius-md);
+    }
+    .mem-card.flipped .mem-card-inner { transform: rotateY(180deg); }
+    .mem-f, .mem-b {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 2.5rem;
+      border: 2px solid var(--border);
+    }
+    .mem-f { background: var(--primary); color: white; font-weight: 800; font-size: 2rem; }
+    .mem-b { background: var(--surface); transform: rotateY(180deg); }
+    .mem-card.matched .mem-b { background: var(--success-light); border-color: var(--success); }
+
+    .button-options-grid {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 14px;
+    }
+    .option-tap-btn {
+      min-width: 110px;
+      padding: 16px 20px;
+      font-size: 1.4rem;
+      font-weight: 800;
+      border-radius: var(--radius-md);
+      border: 2.5px solid var(--border);
+      background: var(--surface);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .option-tap-btn:active { border-color: var(--primary); transform: scale(0.96); }
 
     /* Emergency Alert Modal */
     .emergency-modal {
       position: fixed;
       top: 0; left: 0; right: 0; bottom: 0;
-      background: rgba(220, 38, 38, 0.95);
+      background: rgba(220, 38, 38, 0.96);
       z-index: 100;
       display: none;
       flex-direction: column;
@@ -294,103 +492,101 @@
       color: white;
       text-align: center;
     }
-    .emergency-modal.active { display: flex; animation: pulse 0.5s infinite alternate; }
+    .emergency-modal.active { display: flex; }
 
-    /* Bottom Android Navigation Bar */
-    .bottom-nav {
+    /* Fixed Bottom Navigation */
+    nav.bottom-nav {
       position: fixed;
       bottom: 0; left: 0; right: 0;
       background: var(--surface);
       border-top: 2px solid var(--border);
-      padding: 8px 12px calc(8px + var(--sab));
+      padding: 8px 10px calc(8px + var(--sab));
       display: flex;
       justify-content: space-around;
-      z-index: 40;
+      z-index: 50;
       box-shadow: 0 -4px 16px rgba(0,0,0,0.06);
     }
-    .nav-tab {
+    .nav-item {
       background: transparent;
       border: none;
       display: flex;
       flex-direction: column;
       align-items: center;
       gap: 4px;
-      font-size: 0.76rem;
+      font-size: 0.74rem;
       font-weight: 700;
       color: var(--text-muted);
       cursor: pointer;
       flex: 1;
       padding: 6px 0;
     }
-    .nav-tab.active { color: var(--primary); }
-    .nav-tab svg { width: 24px; height: 24px; stroke-width: 2.3; }
+    .nav-item.active { color: var(--primary); }
+    .nav-item svg { width: 24px; height: 24px; stroke-width: 2.3; }
 
-    /* Game Arena */
-    .memory-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; max-width: 400px; margin: 16px auto; }
-    .mem-card { aspect-ratio: 1; background: var(--primary); color: white; border-radius: var(--radius-sm); font-size: 2rem; display: flex; align-items: center; justify-content: center; cursor: pointer; font-weight: 800; }
-    .mem-card.flipped { background: var(--surface); color: var(--text); border: 2px solid var(--primary); }
-    .mem-card.matched { background: var(--success-light); border: 2px solid var(--success); }
+    @media (max-width: 600px) {
+      .stage-card-grid { grid-template-columns: 1fr; }
+      .iot-grid { grid-template-columns: 1fr; }
+    }
   </style>
 </head>
 <body>
 
-  <!-- ==================== TOP STICKY BAR ==================== -->
-  <header>
-    <div class="brand">
+  <!-- ==================== HEADER ==================== -->
+  <header class="app-header">
+    <div class="brand-cluster">
       <div class="brand-icon">🧠</div>
-      <div>
-        <div class="brand-title">CognitiveCare</div>
-        <div class="brand-subtitle" id="statusBadge">Connecting...</div>
+      <div class="brand-info">
+        <h1>CognitiveCare</h1>
+        <p id="systemStatusPill">Connecting...</p>
       </div>
     </div>
 
-    <div style="display:flex; align-items:center; gap:8px;">
-      <!-- Voice Assistant Button -->
-      <button class="lady-ai-btn" onclick="toggleVoiceListening()">
-        <div class="lady-avatar" id="ladyAvatar">👩‍⚕️</div>
-        <span id="ladyStatusText">Lady AI</span>
+    <div class="header-actions">
+      <!-- Lady AI Trigger -->
+      <button class="lady-ai-trigger" onclick="toggleLadyAiVoiceInput()">
+        <div class="lady-avatar" id="ladyAvatarEl">👩‍⚕️</div>
+        <span id="ladyAiLabel">Lady AI</span>
       </button>
 
-      <!-- Senior Font Zoomer -->
-      <div class="acc-bar">
-        <button class="acc-btn" onclick="adjustFont(-0.1)">A-</button>
-        <button class="acc-btn" onclick="adjustFont(0.1)">A+</button>
-        <button class="acc-btn" onclick="toggleHighContrast()">🌓</button>
+      <!-- Zoom & Contrast -->
+      <div class="acc-cluster">
+        <button class="acc-btn" onclick="zoomFont(-0.1)" title="Smaller Text">A-</button>
+        <button class="acc-btn" onclick="zoomFont(0.1)" title="Larger Text">A+</button>
+        <button class="acc-btn" onclick="toggleContrast()" title="Toggle Contrast">🌓</button>
       </div>
     </div>
   </header>
 
   <!-- ==================== MAIN VIEWPORT ==================== -->
-  <main class="main-viewport">
+  <main class="viewport">
 
     <!-- SCREEN 1: ELDERLY-FRIENDLY HOME & ROUTINES -->
-    <section id="view-home" class="screen-view active">
-      
-      <!-- Greeting & Daily Progress -->
+    <section id="screen-home" class="view-screen active">
+      <!-- Welcome Ribbon -->
       <div class="card" style="background: linear-gradient(135deg, #e0f2fe, #f0f9ff); border-color: #bae6fd;">
         <div style="display:flex; justify-content:space-between; align-items:center;">
           <div>
-            <h2 style="font-size:1.45rem; font-weight:800; color:#0369a1;" id="homeGreeting">Hello, Friend!</h2>
-            <p style="font-size:0.95rem; color:#0c4a6e; font-weight:600;" id="homeDateLabel">Loading today's schedule...</p>
+            <h2 style="font-size:1.45rem; font-weight:800; color:#0369a1;" id="lblPatientGreeting">Hello, Friend!</h2>
+            <p style="font-size:0.95rem; color:#0c4a6e; font-weight:600;" id="lblCurrentDate">Loading schedule...</p>
           </div>
-          <button class="btn btn-secondary" style="width:auto; padding:10px 14px;" onclick="speakTodaySummary()">🔊 Read</button>
+          <button class="btn btn-secondary" style="width:auto; padding:10px 14px;" onclick="speakRoutinesSummary()">🔊 Read</button>
         </div>
 
         <div style="margin-top:16px;">
           <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:700; margin-bottom:6px;">
-            <span>Today's Routine Progress</span>
-            <span id="routineProgressPercent">0% Done</span>
+            <span>Daily Routines Completed</span>
+            <span id="lblRoutinePercent">0%</span>
           </div>
-          <div style="height:10px; background:#bae6fd; border-radius:99px; overflow:hidden;">
-            <div id="routineProgressBar" style="height:100%; width:0%; background:var(--primary); transition:width 0.4s;"></div>
+          <div style="height:12px; background:#bae6fd; border-radius:99px; overflow:hidden;">
+            <div id="barRoutineProgress" style="height:100%; width:0%; background:var(--primary); transition:width 0.4s;"></div>
           </div>
         </div>
       </div>
 
-      <!-- Emergency SOS Quick Button -->
+      <!-- Quick Emergency SOS Button -->
       <div style="margin-bottom:18px;">
-        <button class="btn btn-sos" onclick="triggerManualEmergencyAlert()">
-          🚨 Emergency SOS / Help Needed
+        <button class="btn btn-sos" onclick="triggerEmergencyAlertWorkflow()">
+          🚨 Emergency SOS / I Need Assistance
         </button>
       </div>
 
@@ -398,186 +594,232 @@
       <div class="card">
         <div class="card-title">
           <span>📋 Daily Memory Routines</span>
-          <button class="btn btn-secondary" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="openAddRoutineModal()">+ Add</button>
+          <button class="btn btn-secondary" style="width:auto; padding:6px 12px; font-size:0.8rem;" onclick="openAddRoutinePrompt()">+ Add Task</button>
         </div>
         <div id="routinesListContainer">
-          <!-- Dynamically populated -->
+          <!-- Populated dynamically -->
         </div>
       </div>
 
-      <!-- Quick Game Launcher -->
+      <!-- Cognitive Games Shortcut -->
       <div class="card">
         <div class="card-title">
-          <span>🧠 Quick Brain Training</span>
+          <span>🧠 Cognitive Brain Exercises</span>
         </div>
-        <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:14px;">Stimulate your memory and attention with quick daily exercises.</p>
-        <button class="btn btn-primary" onclick="switchTab('games')">▶ Play Today's Games</button>
+        <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:14px;">Complete your 10 auto-generated brain exercises tailored to your dementia stage.</p>
+        <button class="btn btn-primary" onclick="showScreen('games')">▶ Start Today's Cognitive Workout</button>
       </div>
     </section>
 
-    <!-- SCREEN 2: COGNITIVE GAMES -->
-    <section id="view-games" class="screen-view">
-      <div class="card">
+    <!-- SCREEN 2: 10-SET COGNITIVE GAMES WORKOUT -->
+    <section id="screen-games" class="view-screen">
+      <!-- Intake Card (Appears if not yet configured) -->
+      <div class="card" id="gamesIntakeCard">
         <div class="card-title">
-          <span>🧩 Cognitive Training Suite</span>
-          <span style="font-size:0.9rem; color:var(--primary); font-weight:800;" id="gameScoreVal">Score: 0</span>
+          <span>⚙️ Patient Intake & Stage Generator</span>
         </div>
-        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:14px;">Select an exercise to train memory, attention, and motor reaction.</p>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px;">
+          Select the stage of dementia. The engine will <strong>automatically generate 10 unique, fully calibrated exercises</strong>.
+        </p>
 
-        <div style="display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:16px;">
-          <button class="btn btn-secondary" onclick="startMemoryMatchGame()">1. 🧩 Memory Pairs</button>
-          <button class="btn btn-secondary" onclick="startSequenceGame()">2. 🔢 Number Simon</button>
-          <button class="btn btn-secondary" onclick="startObjectGame()">3. ☕ Find Object</button>
-          <button class="btn btn-secondary" onclick="startReactionGame()">4. ⚡ Reaction Tap</button>
+        <div class="form-group">
+          <label>Patient Full Name</label>
+          <input type="text" id="iptPatientName" class="form-control" value="Eleanor Vance" required>
         </div>
 
-        <!-- Interactive Game Arena -->
-        <div id="gameArenaContainer" style="background:var(--surface-subtle); border:2px dashed var(--border); border-radius:var(--radius-md); padding:20px; text-align:center; min-height:300px; display:flex; flex-direction:column; align-items:center; justify-content:center;">
-          <p style="font-weight:700; color:var(--text-muted);">Choose a game above to start your cognitive session!</p>
+        <label style="font-size:0.88rem; font-weight:700; display:block; margin-bottom:6px;">Select Dementia Stage:</label>
+        <div class="stage-card-grid">
+          <div class="stage-card early" onclick="setDementiaStage('early')" id="stageBtn-early">
+            <h4>🌱 Beginning</h4>
+            <p>High recall. Produces 10 advanced challenge sets.</p>
+            <span class="stage-pill">Difficulty: Hard</span>
+          </div>
+          <div class="stage-card middle selected" onclick="setDementiaStage('middle')" id="stageBtn-middle">
+            <h4>🌿 Moderate</h4>
+            <p>Noticeable memory lapses. Produces 10 balanced sets.</p>
+            <span class="stage-pill">Difficulty: Medium</span>
+          </div>
+          <div class="stage-card late" onclick="setDementiaStage('late')" id="stageBtn-late">
+            <h4>🌸 Advanced</h4>
+            <p>Needs gentle comfort. Produces 10 soothing sets.</p>
+            <span class="stage-pill">Difficulty: Gentle & Easy</span>
+          </div>
+        </div>
+
+        <button class="btn btn-primary" onclick="launch10SetCurriculum()">
+          ⚡ Auto-Generate 10 Cognitive Sets
+        </button>
+      </div>
+
+      <!-- Active Workout Arena (Hidden until intake starts) -->
+      <div id="activeWorkoutArea" style="display:none;">
+        <div class="card" style="padding:14px 20px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <strong id="lblActivePatientName">Eleanor Vance</strong>
+            <span id="lblActiveStageBadge" style="margin-left:8px; font-size:0.75rem; font-weight:800; padding:3px 8px; border-radius:99px; background:#dcfce7; color:#15803d;">MODERATE (10 SETS)</span>
+          </div>
+          <button class="btn btn-secondary" style="width:auto; padding:6px 12px; font-size:0.75rem;" onclick="resetCurriculumIntake()">Reset</button>
+        </div>
+
+        <div class="card">
+          <div class="card-title">
+            <span id="lblSetHeaderTitle">Set 1 of 10</span>
+            <button class="btn btn-secondary" style="width:auto; padding:4px 10px; font-size:0.8rem;" onclick="ladyRepeatSetInstruction()">🔊 Hear Guide</button>
+          </div>
+          <p style="color:var(--text-muted); font-size:0.92rem;" id="lblSetDescription">Description...</p>
+
+          <div class="arena-box" id="curriculumArena">
+            <!-- Game injected dynamically -->
+          </div>
+
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
+            <button class="btn btn-secondary" style="width:auto;" onclick="restartCurrentSet()">🔄 Restart Set</button>
+            <button class="btn btn-primary" style="width:auto;" id="btnNextSetStep" onclick="goToNextSet()">Next Set →</button>
+          </div>
         </div>
       </div>
     </section>
 
     <!-- SCREEN 3: ESP32-S3 IOT HARDWARE MONITOR -->
-    <section id="view-iot" class="screen-view">
+    <section id="screen-iot" class="view-screen">
       <div class="card">
         <div class="card-title">
-          <span>📡 ESP32-S3 IoT Hardware Monitor</span>
-          <span class="status-pill" id="espStatusBadge" style="font-size:0.75rem; padding:4px 10px; border-radius:99px; background:#fee2e2; color:#991b1b;">Device: Offline</span>
+          <span>📡 ESP32-S3 Sensor Telemetry</span>
+          <span id="lblEspStatusBadge" style="font-size:0.78rem; font-weight:800; padding:4px 10px; border-radius:99px; background:#fee2e2; color:#991b1b;">Device: Offline</span>
         </div>
-        <p style="color:var(--text-muted); font-size:0.88rem; margin-bottom:16px;">Live telemetry received from the ESP32-S3 force pad & MPU6050 accelerometer sensor via Firebase.</p>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px;">
+          Listening in real time to Firebase path <code>devices/esp32_s3/sensors</code> populated by the ESP32-S3 microcontroller.
+        </p>
 
-        <!-- Sensor Tiles -->
         <div class="iot-grid">
-          <div class="sensor-box highlight">
-            <div class="sensor-lbl">Force Sensor (Grip / Weight)</div>
-            <div class="sensor-val" id="iotForceVal">0 N</div>
-            <div style="font-size:0.75rem; color:var(--text-muted);" id="iotForceStatus">No Pressure</div>
+          <div class="sensor-tile primary-tile">
+            <div class="sensor-lbl">Force Sensor (Grip/Load)</div>
+            <div class="sensor-val" id="valEspForce">0 N</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);" id="valEspForceStatus">No Pressure</div>
           </div>
-          <div class="sensor-box">
-            <div class="sensor-lbl">Fall Detection State</div>
-            <div class="sensor-val" id="iotFallVal" style="color:var(--success);">NORMAL</div>
-            <div style="font-size:0.75rem; color:var(--text-muted);" id="iotFallStatus">Stable Posture</div>
+          <div class="sensor-tile">
+            <div class="sensor-lbl">Fall Detection Flag</div>
+            <div class="sensor-val" id="valEspFallFlag" style="color:var(--success);">NORMAL</div>
+            <div style="font-size:0.75rem; color:var(--text-muted);" id="valEspFallStatus">Posture Stable</div>
           </div>
         </div>
 
-        <div class="sensor-box" style="margin-bottom:16px; text-align:left;">
-          <div class="sensor-lbl" style="margin-bottom:6px;">MPU6050 Motion Vectors</div>
-          <div style="font-size:0.9rem; font-family:monospace; line-height:1.6;" id="iotMotionRaw">
+        <div class="sensor-tile" style="text-align:left; margin-bottom:16px;">
+          <div class="sensor-lbl" style="margin-bottom:6px;">MPU6050 6-Axis Vectors</div>
+          <div style="font-size:0.9rem; font-family:monospace; line-height:1.6;" id="valEspMotionRaw">
             Accel: X: 0.00 | Y: 0.00 | Z: 9.81 m/s²<br>
             Gyro : X: 0.00 | Y: 0.00 | Z: 0.00 °/s
           </div>
-          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;" id="iotLastSeen">Last Packet: Never</div>
+          <div style="font-size:0.75rem; color:var(--text-muted); margin-top:6px;" id="valEspLastPacketTime">Last Sync: Never</div>
         </div>
 
-        <!-- Hardware Simulator Controls -->
+        <h3 style="font-size:1rem; margin-bottom:10px;">Hardware Test Simulators</h3>
         <div style="display:flex; gap:10px;">
-          <button class="btn btn-secondary" onclick="simulateIotHardwarePacket()">🧪 Simulate Normal Sensor Packet</button>
-          <button class="btn btn-danger" onclick="simulateFallEvent()">⚠️ Simulate Fall Detection</button>
+          <button class="btn btn-secondary" onclick="simulateEsp32Packet()">🧪 Mock Normal Packet</button>
+          <button class="btn btn-danger" onclick="triggerEmergencyAlertWorkflow()">⚠️ Trigger Fall Alarm</button>
         </div>
       </div>
     </section>
 
-    <!-- SCREEN 4: CAREGIVER PORTAL -->
-    <section id="view-caregiver" class="screen-view">
+    <!-- SCREEN 4: CAREGIVER SUPERVISION -->
+    <section id="screen-caregiver" class="view-screen">
       <div class="card">
         <div class="card-title">
-          <span>🛡️ Caregiver Supervision</span>
+          <span>🛡️ Caregiver Supervision Portal</span>
         </div>
-        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:14px;">Monitor assigned patient routines, sensor alerts, and training trends.</p>
+        <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:14px;">Monitor routine adherence, emergency logs, and remote settings.</p>
 
-        <div class="sensor-box" style="text-align:left; margin-bottom:16px;">
+        <div class="sensor-tile" style="text-align:left; margin-bottom:16px;">
           <div class="sensor-lbl">Assigned Patient Profile</div>
-          <strong style="font-size:1.2rem; display:block; margin:4px 0;" id="caregiverPatientName">Eleanor Vance (Age: 76)</strong>
-          <span style="font-size:0.85rem; color:var(--text-muted);">Dementia Stage: Beginning &bull; ID: pt_eleanor_vance</span>
+          <strong style="font-size:1.2rem; display:block; margin:4px 0;">Eleanor Vance (Age: 76)</strong>
+          <span style="font-size:0.85rem; color:var(--text-muted);">Caregiver: Dr. Sarah Roberts &bull; Contact: +1 (555) 019-2831</span>
         </div>
 
-        <h3 style="font-size:1.05rem; margin-bottom:10px;">Recent Incident & Fall Alerts</h3>
-        <div id="caregiverAlertsLog" style="background:var(--surface-subtle); border-radius:var(--radius-sm); border:1px solid var(--border); padding:12px; font-size:0.85rem; max-height:160px; overflow-y:auto; margin-bottom:16px;">
-          <div>No emergency alerts recorded today.</div>
+        <h3 style="font-size:1rem; margin-bottom:8px;">Recent Incident & Alert Log</h3>
+        <div id="caregiverAlertLogBox" style="background:var(--surface-subtle); border-radius:var(--radius-sm); border:1px solid var(--border); padding:12px; font-size:0.85rem; max-height:160px; overflow-y:auto; margin-bottom:16px;">
+          <div>[System] Ready. No incidents recorded today.</div>
         </div>
 
-        <button class="btn btn-secondary" onclick="speakLady('Everything is stable with the patient today.')">🔊 Speak Status Summary</button>
+        <button class="btn btn-secondary" onclick="speakLady('Patient status is stable. 4 of 6 daily routines completed.')">🔊 Audio Status Briefing</button>
       </div>
     </section>
 
-    <!-- SCREEN 5: PROFILE & FIREBASE AUTH -->
-    <section id="view-profile" class="screen-view">
+    <!-- SCREEN 5: FIREBASE AUTH & PROFILE -->
+    <section id="screen-profile" class="view-screen">
       <div class="card">
         <div class="card-title">
-          <span>👤 Patient & Account Profile</span>
+          <span>👤 Patient & Account Credentials</span>
         </div>
-        <div id="authLoggedOutView">
-          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px;">Sign in with your CognitiveCare account to synchronize routines and sensor records with Firebase.</p>
-          <div style="margin-bottom:12px;">
-            <label style="font-size:0.85rem; font-weight:700;">Email</label>
-            <input type="email" id="authEmailInput" class="btn btn-secondary" style="text-align:left; padding:12px; margin-top:4px;" placeholder="patient@cognitivecare.com">
+        <div id="boxLoggedOut">
+          <p style="color:var(--text-muted); font-size:0.9rem; margin-bottom:16px;">Authenticate using your Firebase credentials to synchronize routines across devices.</p>
+          <div class="form-group">
+            <label>Email Address</label>
+            <input type="email" id="iptAuthEmail" class="form-control" placeholder="patient@care.org">
           </div>
-          <div style="margin-bottom:16px;">
-            <label style="font-size:0.85rem; font-weight:700;">Password</label>
-            <input type="password" id="authPassInput" class="btn btn-secondary" style="text-align:left; padding:12px; margin-top:4px;" placeholder="••••••••">
+          <div class="form-group">
+            <label>Password</label>
+            <input type="password" id="iptAuthPassword" class="form-control" placeholder="••••••••">
           </div>
           <div style="display:flex; gap:10px;">
-            <button class="btn btn-primary" onclick="handleFirebaseAuthLogin()">Sign In</button>
-            <button class="btn btn-secondary" onclick="handleGuestLogin()">Guest Mode</button>
+            <button class="btn btn-primary" onclick="performFirebaseAuth()">Sign In</button>
+            <button class="btn btn-secondary" onclick="performGuestAuth()">Guest Mode</button>
           </div>
         </div>
-
-        <div id="authLoggedInView" style="display:none;">
-          <p style="color:var(--text-muted); font-size:0.9rem;">Logged in as: <strong id="authUserEmail">patient@care.com</strong></p>
-          <button class="btn btn-danger" style="margin-top:16px;" onclick="handleFirebaseSignOut()">Sign Out</button>
+        <div id="boxLoggedIn" style="display:none;">
+          <p style="font-size:1rem; margin-bottom:14px;">Logged in as: <strong id="lblActiveUserEmail">patient@care.org</strong></p>
+          <button class="btn btn-danger" onclick="performFirebaseSignOut()">Sign Out</button>
         </div>
       </div>
     </section>
 
   </main>
 
-  <!-- ==================== EMERGENCY ALERT OVERLAY ==================== -->
-  <div class="emergency-modal" id="emergencyOverlay">
-    <div style="font-size:4rem; margin-bottom:10px;">🚨</div>
-    <h1 style="font-size:2rem; font-weight:800; margin-bottom:8px;">POTENTIAL FALL DETECTED!</h1>
-    <p style="font-size:1.1rem; max-width:400px; margin-bottom:24px;">The ESP32-S3 MPU6050 sensor recorded an impact or sudden position shift.</p>
-    <div style="font-size:3rem; font-weight:800; margin-bottom:28px;" id="emergencyCountdown">30s</div>
+  <!-- ==================== EMERGENCY ALERT MODAL ==================== -->
+  <div class="emergency-modal" id="modalEmergencyAlert">
+    <div style="font-size:4.5rem; margin-bottom:8px;">🚨</div>
+    <h1 style="font-size:2rem; font-weight:800; margin-bottom:6px;">POTENTIAL FALL DETECTED!</h1>
+    <p style="font-size:1.1rem; max-width:400px; margin-bottom:20px;">The ESP32 MPU6050 sensor recorded a sudden impact and orientation shift.</p>
+    <div style="font-size:3.5rem; font-weight:800; margin-bottom:24px;" id="lblEmergencyTimer">30s</div>
     <div style="display:flex; flex-direction:column; gap:12px; width:100%; max-width:320px;">
-      <button class="btn btn-primary" style="background:white; color:#dc2626; font-size:1.2rem;" onclick="cancelEmergencyAlert()">
+      <button class="btn btn-primary" style="background:#ffffff; color:#dc2626; font-size:1.2rem;" onclick="dismissEmergencyAlert()">
         ✅ I am OK (Cancel Alert)
       </button>
-      <button class="btn" style="background:#7f1d1d; color:white;" onclick="confirmCaregiverEmergencyCall()">
+      <button class="btn" style="background:#7f1d1d; color:#ffffff;" onclick="confirmCaregiverAlertDispatch()">
         📞 Call Caregiver Now
       </button>
     </div>
   </div>
 
-  <!-- ==================== BOTTOM ANDROID NAVIGATION BAR ==================== -->
+  <!-- ==================== FIXED BOTTOM NAVIGATION ==================== -->
   <nav class="bottom-nav">
-    <button class="nav-tab active" onclick="switchTab('home')">
+    <button class="nav-item active" onclick="showScreen('home')">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path></svg>
       <span>Routines</span>
     </button>
-    <button class="nav-tab" onclick="switchTab('games')">
+    <button class="nav-item" onclick="showScreen('games')">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"></path><path d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-      <span>Games</span>
+      <span>10 Games</span>
     </button>
-    <button class="nav-tab" onclick="switchTab('iot')">
+    <button class="nav-item" onclick="showScreen('iot')">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"></path></svg>
       <span>ESP32 IoT</span>
     </button>
-    <button class="nav-tab" onclick="switchTab('caregiver')">
+    <button class="nav-item" onclick="showScreen('caregiver')">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
       <span>Caregiver</span>
     </button>
-    <button class="nav-tab" onclick="switchTab('profile')">
+    <button class="nav-item" onclick="showScreen('profile')">
       <svg fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
-      <span>Profile</span>
+      <span>Account</span>
     </button>
   </nav>
 
   <!-- ==========================================================================
-       JAVASCRIPT LOGIC ENGINE
+       ENTERPRISE JAVASCRIPT LOGIC ENGINE
        ========================================================================== -->
   <script>
     /* ==========================================================================
-       1. FIREBASE INITIALIZATION (Your Project Credentials)
+       1. FIREBASE INITIALIZATION & REALTIME BINDINGS
        ========================================================================== */
     const firebaseConfig = {
       apiKey: "AIzaSyBS0nV2kUo68cZIN3wrDYahscgkVnS3Tr4",
@@ -599,41 +841,43 @@
       db = firebase.database();
       auth = firebase.auth();
 
-      // Monitor Realtime Database Connection
-      db.ref(".info/connected").on("value", snap => {
-        const badge = document.getElementById("statusBadge");
-        if (snap.val() === true) {
-          badge.textContent = "ONLINE ●";
-          badge.style.color = "var(--success)";
+      // Monitor Realtime Connection State
+      db.ref(".info/connected").on("value", snapshot => {
+        const pill = document.getElementById("systemStatusPill");
+        if (snapshot.val() === true) {
+          pill.textContent = "FIREBASE ONLINE ●";
+          pill.style.color = "var(--success)";
         } else {
-          badge.textContent = "OFFLINE ○";
-          badge.style.color = "var(--danger)";
+          pill.textContent = "OFFLINE CACHE ○";
+          pill.style.color = "var(--danger)";
         }
       });
 
-      // Monitor Auth State
+      // Monitor User Authentication
       auth.onAuthStateChanged(user => {
         currentUser = user;
         if (user) {
-          document.getElementById('authLoggedOutView').style.display = 'none';
-          document.getElementById('authLoggedInView').style.display = 'block';
-          document.getElementById('authUserEmail').textContent = user.email || 'Guest User';
+          document.getElementById('boxLoggedOut').style.display = 'none';
+          document.getElementById('boxLoggedIn').style.display = 'block';
+          document.getElementById('lblActiveUserEmail').textContent = user.email || 'Guest User';
         } else {
-          document.getElementById('authLoggedOutView').style.display = 'block';
-          document.getElementById('authLoggedInView').style.display = 'none';
+          document.getElementById('boxLoggedOut').style.display = 'block';
+          document.getElementById('boxLoggedIn').style.display = 'none';
         }
       });
-    } catch(err) {
-      console.warn("Firebase initialization warning:", err);
+    } catch (e) {
+      console.warn("Firebase Init Exception:", e);
     }
 
     /* ==========================================================================
-       2. WEB AUDIO SYNTHESIZER (No External Sound Dependencies)
+       2. WEB AUDIO API SYNTHESIZER
        ========================================================================== */
-    const AudioEngine = {
+    const SoundFont = {
       ctx: null,
-      init() { if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)(); },
-      beep(freq = 440, type = 'sine', duration = 0.2) {
+      init() {
+        if (!this.ctx) this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+      },
+      tone(freq = 440, type = 'sine', duration = 0.2) {
         try {
           this.init();
           if (this.ctx.state === 'suspended') this.ctx.resume();
@@ -643,12 +887,24 @@
           osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
           gain.gain.setValueAtTime(0.18, this.ctx.currentTime);
           gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
-          osc.connect(gain); gain.connect(this.ctx.destination);
-          osc.start(); osc.stop(this.ctx.currentTime + duration);
+          osc.connect(gain);
+          gain.connect(this.ctx.destination);
+          osc.start();
+          osc.stop(this.ctx.currentTime + duration);
         } catch(e) {}
       },
-      chime() { this.beep(523.25, 'triangle', 0.1); setTimeout(() => this.beep(659.25, 'triangle', 0.15), 100); setTimeout(() => this.beep(783.99, 'triangle', 0.25), 200); },
-      alertSiren() { this.beep(880, 'sawtooth', 0.3); setTimeout(() => this.beep(660, 'sawtooth', 0.3), 350); }
+      successChime() {
+        this.tone(523.25, 'triangle', 0.12);
+        setTimeout(() => this.tone(659.25, 'triangle', 0.15), 100);
+        setTimeout(() => this.tone(783.99, 'triangle', 0.25), 200);
+      },
+      errorTone() {
+        this.tone(220, 'sawtooth', 0.25);
+      },
+      alarmSiren() {
+        this.tone(880, 'sawtooth', 0.3);
+        setTimeout(() => this.tone(660, 'sawtooth', 0.3), 320);
+      }
     };
 
     /* ==========================================================================
@@ -663,96 +919,95 @@
       ut.pitch = 1.15;
 
       const voices = window.speechSynthesis.getVoices();
-      const female = voices.find(v => v.lang.startsWith("en") && (v.name.includes("Female") || v.name.includes("Zira") || v.name.includes("Samantha")));
-      if (female) ut.voice = female;
+      const ladyVoice = voices.find(v => v.lang.startsWith("en") && (
+        v.name.includes("Female") || v.name.includes("Zira") || v.name.includes("Samantha")
+      ));
+      if (ladyVoice) ut.voice = ladyVoice;
 
-      const avatar = document.getElementById('ladyAvatar');
-      const label = document.getElementById('ladyStatusText');
-      ut.onstart = () => { avatar.classList.add('speaking'); label.textContent = 'Speaking...'; };
-      ut.onend = () => { avatar.classList.remove('speaking'); label.textContent = 'Lady AI'; };
+      const avatar = document.getElementById("ladyAvatarEl");
+      const label = document.getElementById("ladyAiLabel");
+      ut.onstart = () => { avatar.classList.add("speaking"); label.textContent = "Speaking..."; };
+      ut.onend = () => { avatar.classList.remove("speaking"); label.textContent = "Lady AI"; };
       window.speechSynthesis.speak(ut);
     }
 
-    let recognition = null;
-    function toggleVoiceListening() {
+    let voiceRecognizer = null;
+    function toggleLadyAiVoiceInput() {
       const Speech = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!Speech) {
-        speakLady("Speech recognition is not available in this browser. Please use the touch buttons.");
+        speakLady("Speech recognition is not supported in this browser. Please use the touch controls.");
         return;
       }
-      if (recognition) {
-        recognition.stop();
-        recognition = null;
-        document.getElementById('ladyStatusText').textContent = 'Lady AI';
+      if (voiceRecognizer) {
+        voiceRecognizer.stop();
+        voiceRecognizer = null;
+        document.getElementById("ladyAiLabel").textContent = "Lady AI";
         return;
       }
-      recognition = new Speech();
-      recognition.lang = "en-US";
-      recognition.continuous = false;
-      recognition.onstart = () => { document.getElementById('ladyStatusText').textContent = 'Listening...'; };
-      recognition.onresult = (e) => {
-        const cmd = e.results[0][0].transcript.toLowerCase();
-        handleVoiceCommand(cmd);
+      voiceRecognizer = new Speech();
+      voiceRecognizer.lang = "en-US";
+      voiceRecognizer.continuous = false;
+      voiceRecognizer.onstart = () => { document.getElementById("ladyAiLabel").textContent = "Listening..."; };
+      voiceRecognizer.onresult = (e) => {
+        const text = e.results[0][0].transcript.toLowerCase();
+        processVoiceCommand(text);
       };
-      recognition.onend = () => {
-        recognition = null;
-        document.getElementById('ladyStatusText').textContent = 'Lady AI';
+      voiceRecognizer.onend = () => {
+        voiceRecognizer = null;
+        document.getElementById("ladyAiLabel").textContent = "Lady AI";
       };
-      recognition.start();
+      voiceRecognizer.start();
     }
 
-    function handleVoiceCommand(cmd) {
+    function processVoiceCommand(cmd) {
       if (cmd.includes("next") || cmd.includes("what should i do")) {
-        const next = defaultRoutines.find(r => !r.done);
-        if (next) speakLady(`Your next scheduled activity is ${next.name} at ${next.time}.`);
-        else speakLady("You have completed all your scheduled activities for today! Wonderful job.");
+        const next = dailyRoutines.find(r => !r.done);
+        if (next) speakLady(`Your next activity is ${next.name} at ${next.time}.`);
+        else speakLady("All your daily routines are finished! You did wonderful today.");
       } else if (cmd.includes("reminder") || cmd.includes("read")) {
-        speakTodaySummary();
-      } else if (cmd.includes("complete") || cmd.includes("mark")) {
-        const firstUndone = defaultRoutines.find(r => !r.done);
-        if (firstUndone) {
-          toggleRoutineCompletion(firstUndone.id);
-          speakLady(`Marked ${firstUndone.name} as completed.`);
-        }
+        speakRoutinesSummary();
+      } else if (cmd.includes("game") || cmd.includes("play")) {
+        showScreen('games');
+        speakLady("Switched to your cognitive brain exercises.");
       } else {
-        speakLady(`I heard: "${cmd}". You can ask me: what should I do next, or read my reminders.`);
+        speakLady(`I heard: ${cmd}. You can ask me what to do next, or read my reminders.`);
       }
     }
 
     /* ==========================================================================
-       4. DAILY MEMORY ASSISTANT (ROUTINES)
+       4. DAILY ROUTINES & MEMORY ASSISTANT
        ========================================================================== */
-    const defaultRoutines = [
+    const dailyRoutines = [
       { id: 'r1', icon: '💊', name: 'Morning Medicine', time: '8:00 AM', done: false },
-      { id: 'r2', icon: '🥣', name: 'Breakfast', time: '8:30 AM', done: false },
-      { id: 'r3', icon: '💧', name: 'Drink Water (1 Glass)', time: '10:30 AM', done: false },
-      { id: 'r4', icon: '🥗', name: 'Lunch', time: '1:00 PM', done: false },
+      { id: 'r2', icon: '🥣', name: 'Nutritious Breakfast', time: '8:30 AM', done: false },
+      { id: 'r3', icon: '💧', name: 'Hydration (1 Glass of Water)', time: '10:30 AM', done: false },
+      { id: 'r4', icon: '🥗', name: 'Healthy Lunch', time: '1:00 PM', done: false },
       { id: 'r5', icon: '💊', name: 'Evening Medicine', time: '6:30 PM', done: false },
       { id: 'r6', icon: '🍲', name: 'Dinner', time: '7:30 PM', done: false }
     ];
 
-    function loadRoutines() {
-      const stored = localStorage.getItem('cc_routines');
-      if (stored) {
-        const parsed = JSON.parse(stored);
+    function loadDailyRoutines() {
+      const saved = localStorage.getItem("cc_routines_cache");
+      if (saved) {
+        const parsed = JSON.parse(saved);
         parsed.forEach(p => {
-          const match = defaultRoutines.find(r => r.id === p.id);
+          const match = dailyRoutines.find(r => r.id === p.id);
           if (match) match.done = p.done;
         });
       }
-      renderRoutinesList();
+      renderRoutinesUI();
     }
 
-    function renderRoutinesList() {
-      const list = document.getElementById('routinesListContainer');
-      list.innerHTML = '';
-      let doneCount = 0;
+    function renderRoutinesUI() {
+      const container = document.getElementById("routinesListContainer");
+      container.innerHTML = "";
+      let completed = 0;
 
-      defaultRoutines.forEach(r => {
-        if (r.done) doneCount++;
-        const item = document.createElement('div');
-        item.className = `routine-item ${r.done ? 'done' : ''}`;
-        item.innerHTML = `
+      dailyRoutines.forEach(r => {
+        if (r.done) completed++;
+        const box = document.createElement("div");
+        box.className = `routine-box ${r.done ? 'completed' : ''}`;
+        box.innerHTML = `
           <div class="routine-left">
             <span class="routine-icon">${r.icon}</span>
             <div>
@@ -760,333 +1015,562 @@
               <div class="routine-time">Scheduled: ${r.time}</div>
             </div>
           </div>
-          <div class="routine-check">${r.done ? '✓' : ''}</div>
+          <div class="routine-checkmark">${r.done ? '✓' : ''}</div>
         `;
-        item.onclick = () => toggleRoutineCompletion(r.id);
-        list.appendChild(item);
+        box.onclick = () => toggleRoutine(r.id);
+        container.appendChild(box);
       });
 
-      const pct = Math.round((doneCount / defaultRoutines.length) * 100);
-      document.getElementById('routineProgressPercent').textContent = `${pct}% Done`;
-      document.getElementById('routineProgressBar').style.width = `${pct}%`;
-      localStorage.setItem('cc_routines', JSON.stringify(defaultRoutines));
+      const pct = Math.round((completed / dailyRoutines.length) * 100);
+      document.getElementById("lblRoutinePercent").textContent = `${pct}% Done`;
+      document.getElementById("barRoutineProgress").style.width = `${pct}%`;
+      localStorage.setItem("cc_routines_cache", JSON.stringify(dailyRoutines));
 
       if (db) {
         db.ref("patients/pt_default/routines_summary").set({
-          completed: doneCount,
-          total: defaultRoutines.length,
+          completed: completed,
+          total: dailyRoutines.length,
           lastUpdated: firebase.database.ServerValue.TIMESTAMP
         });
       }
     }
 
-    function toggleRoutineCompletion(id) {
-      const r = defaultRoutines.find(x => x.id === id);
+    function toggleRoutine(id) {
+      const r = dailyRoutines.find(x => x.id === id);
       if (!r) return;
       r.done = !r.done;
       if (r.done) {
-        AudioEngine.chime();
-        speakLady(`${r.name} marked as complete.`);
+        SoundFont.successChime();
+        speakLady(`${r.name} marked as complete!`);
       }
-      renderRoutinesList();
+      renderRoutinesUI();
     }
 
-    function speakTodaySummary() {
-      const remaining = defaultRoutines.filter(r => !r.done);
+    function speakRoutinesSummary() {
+      const remaining = dailyRoutines.filter(r => !r.done);
       if (remaining.length === 0) {
-        speakLady("All your routines for today are finished. You are doing great!");
+        speakLady("All your routines for today are completed. Outstanding effort!");
       } else {
-        const text = `You have ${remaining.length} routines remaining today. The next is ${remaining[0].name} at ${remaining[0].time}.`;
-        speakLady(text);
+        speakLady(`You have ${remaining.length} routines remaining. Next is ${remaining[0].name} at ${remaining[0].time}.`);
       }
     }
 
-    /* ==========================================================================
-       5. ESP32-S3 IOT LIVE DATA & FALL DETECTION
-       ========================================================================== */
-    function initEsp32Listener() {
+    function openAddRoutinePrompt() {
+      const name = prompt("Enter new routine title (e.g. Afternoon Walk):");
+      if (!name) return;
+      const time = prompt("Enter scheduled time (e.g. 4:00 PM):") || "4:00 PM";
+      dailyRoutines.push({ id: 'r_' + Date.now(), icon: '⭐', name: name, time: time, done: false });
+      renderRoutinesUI();
+    }
+
+    /* =========================================================
+       5. ESP32-S3 IOT INTEGRATION & FALL WORKFLOW
+       ========================================================= */
+    function initEsp32FirebaseListener() {
       if (!db) return;
       db.ref("devices/esp32_s3/sensors").on("value", snapshot => {
         const val = snapshot.val();
-        if (val) updateSensorDisplays(val);
+        if (val) parseEspTelemetryPacket(val);
       });
     }
 
-    function updateSensorDisplays(data) {
-      document.getElementById('espStatusBadge').textContent = 'ESP32: Online ●';
-      document.getElementById('espStatusBadge').style.background = 'var(--success-light)';
-      document.getElementById('espStatusBadge').style.color = 'var(--success)';
+    function parseEspTelemetryPacket(data) {
+      const badge = document.getElementById("lblEspStatusBadge");
+      badge.textContent = "ESP32: Online ●";
+      badge.style.background = "var(--success-light)";
+      badge.style.color = "var(--success)";
 
-      // Force Sensor
       const force = data.force !== undefined ? data.force : 0;
-      document.getElementById('iotForceVal').textContent = `${force} N`;
-      document.getElementById('iotForceStatus').textContent = force > 50 ? 'Grip / Load Active' : 'Resting';
+      document.getElementById("valEspForce").textContent = `${force} N`;
+      document.getElementById("valEspForceStatus").textContent = force > 40 ? "Grip Pressure Detected" : "No Pressure";
 
-      // Motion Vectors
-      const ax = data.ax ? data.ax.toFixed(2) : '0.00';
-      const ay = data.ay ? data.ay.toFixed(2) : '0.00';
-      const az = data.az ? data.az.toFixed(2) : '9.81';
-      document.getElementById('iotMotionRaw').innerHTML = `
+      const ax = data.ax !== undefined ? Number(data.ax).toFixed(2) : "0.00";
+      const ay = data.ay !== undefined ? Number(data.ay).toFixed(2) : "0.00";
+      const az = data.az !== undefined ? Number(data.az).toFixed(2) : "9.81";
+      document.getElementById("valEspMotionRaw").innerHTML = `
         Accel: X: ${ax} | Y: ${ay} | Z: ${az} m/s²<br>
         Gyro : X: ${data.gx || 0} | Y: ${data.gy || 0} | Z: ${data.gz || 0} °/s
       `;
-      document.getElementById('iotLastSeen').textContent = `Last Packet: ${new Date().toLocaleTimeString()}`;
+      document.getElementById("valEspLastPacketTime").textContent = `Last Packet: ${new Date().toLocaleTimeString()}`;
 
-      // Fall Sensor Alert
       if (data.fall_detected === true) {
-        triggerFallEmergencyWorkflow();
+        triggerEmergencyAlertWorkflow();
       }
     }
 
-    function simulateIotHardwarePacket() {
-      const mockPacket = {
-        force: Math.floor(Math.random() * 45) + 10,
+    function simulateEsp32Packet() {
+      const mock = {
+        force: Math.floor(Math.random() * 60) + 10,
         ax: (Math.random() * 0.4 - 0.2),
         ay: (Math.random() * 0.4 - 0.2),
         az: 9.81 + (Math.random() * 0.3),
+        gx: Math.floor(Math.random() * 5),
+        gy: Math.floor(Math.random() * 5),
+        gz: Math.floor(Math.random() * 5),
         fall_detected: false,
         timestamp: Date.now()
       };
-      updateSensorDisplays(mockPacket);
-      if (db) db.ref("devices/esp32_s3/sensors").set(mockPacket);
+      parseEspTelemetryPacket(mock);
+      if (db) db.ref("devices/esp32_s3/sensors").set(mock);
     }
 
-    function simulateFallEvent() {
-      triggerFallEmergencyWorkflow();
-    }
+    /* Emergency Alert Countdown Engine */
+    let alertTimerId = null;
+    let alertCountdown = 30;
 
-    /* ==========================================================================
-       6. EMERGENCY WORKFLOW (FALL / SOS)
-       ========================================================================== */
-    let emergencyInterval = null;
-    let emergencySeconds = 30;
+    function triggerEmergencyAlertWorkflow() {
+      const modal = document.getElementById("modalEmergencyAlert");
+      modal.classList.add("active");
+      alertCountdown = 30;
+      document.getElementById("lblEmergencyTimer").textContent = `${alertCountdown}s`;
 
-    function triggerFallEmergencyWorkflow() {
-      const modal = document.getElementById('emergencyOverlay');
-      modal.classList.add('active');
-      emergencySeconds = 30;
-      document.getElementById('emergencyCountdown').textContent = `${emergencySeconds}s`;
+      SoundFont.alarmSiren();
+      speakLady("Emergency Warning: A potential fall was detected. If you are safe, press cancel.");
 
-      AudioEngine.alertSiren();
-      speakLady("Warning: A potential fall was detected. If you are okay, press the cancel button.");
-
-      clearInterval(emergencyInterval);
-      emergencyInterval = setInterval(() => {
-        emergencySeconds--;
-        document.getElementById('emergencyCountdown').textContent = `${emergencySeconds}s`;
-        if (emergencySeconds % 5 === 0) AudioEngine.alertSiren();
-        if (emergencySeconds <= 0) {
-          clearInterval(emergencyInterval);
-          confirmCaregiverEmergencyCall();
+      clearInterval(alertTimerId);
+      alertTimerId = setInterval(() => {
+        alertCountdown--;
+        document.getElementById("lblEmergencyTimer").textContent = `${alertCountdown}s`;
+        if (alertCountdown % 5 === 0) SoundFont.alarmSiren();
+        if (alertCountdown <= 0) {
+          clearInterval(alertTimerId);
+          confirmCaregiverAlertDispatch();
         }
       }, 1000);
 
-      logCaregiverAlert("Automated MPU6050 Fall Detection Alert Triggered.");
+      logIncidentAlert("Automated MPU6050 Fall Detection Triggered.");
     }
 
-    function cancelEmergencyAlert() {
-      clearInterval(emergencyInterval);
-      document.getElementById('emergencyOverlay').classList.remove('active');
-      speakLady("Emergency alert cancelled. Glad to hear you are safe.");
+    function dismissEmergencyAlert() {
+      clearInterval(alertTimerId);
+      document.getElementById("modalEmergencyAlert").classList.remove("active");
+      speakLady("Emergency alert cancelled. Glad you are safe.");
     }
 
-    function confirmCaregiverEmergencyCall() {
-      clearInterval(emergencyInterval);
-      document.getElementById('emergencyOverlay').classList.remove('active');
-      speakLady("Notifying assigned caregiver Sarah now.");
-      alert("Emergency Call Dispatch Simulation: Caregiver Sarah has been alerted with current device coordinates.");
-      logCaregiverAlert("Emergency Confirmed: Caregiver Notified.");
+    function confirmCaregiverAlertDispatch() {
+      clearInterval(alertTimerId);
+      document.getElementById("modalEmergencyAlert").classList.remove("active");
+      speakLady("Alerting caregiver Dr. Roberts immediately.");
+      alert("Emergency Call Dispatch: Caregiver Roberts has been notified with GPS telemetry.");
+      logIncidentAlert("Emergency Confirmed: Caregiver Dispatched.");
     }
 
-    function triggerManualEmergencyAlert() {
-      triggerFallEmergencyWorkflow();
-    }
-
-    function logCaregiverAlert(msg) {
-      const box = document.getElementById('caregiverAlertsLog');
-      const div = document.createElement('div');
-      div.style.padding = '4px 0';
-      div.style.borderBottom = '1px solid #ddd';
-      div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
+    function logIncidentAlert(text) {
+      const box = document.getElementById("caregiverAlertLogBox");
+      const div = document.createElement("div");
+      div.style.padding = "4px 0";
+      div.style.borderBottom = "1px solid var(--border)";
+      div.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
       box.prepend(div);
       if (db) {
         db.ref("patients/pt_default/alerts").push({
-          message: msg,
+          message: text,
           timestamp: firebase.database.ServerValue.TIMESTAMP
         });
       }
     }
 
     /* ==========================================================================
-       7. COGNITIVE GAMES ENGINE
-       ========================================================================== */
-    let currentGameScore = 0;
+       6. 10-SET AUTO-GENERATED COGNITIVE CURRICULUM
+       ========================================================================= */
+    let currentDementiaStage = 'middle';
+    let currentSetIdx = 0;
 
-    function startMemoryMatchGame() {
-      const arena = document.getElementById('gameArenaContainer');
-      const icons = ['🍌', '🍇', '🍎', '🍊'];
+    function setDementiaStage(stage) {
+      currentDementiaStage = stage;
+      document.querySelectorAll(".stage-card").forEach(c => c.classList.remove("selected"));
+      document.getElementById(`stageBtn-${stage}`).classList.add("selected");
+      if (stage === 'early') speakLady("Beginning stage selected. 10 advanced challenge sets prepared.");
+      if (stage === 'middle') speakLady("Moderate stage selected. 10 balanced recall sets prepared.");
+      if (stage === 'late') speakLady("Advanced stage selected. 10 gentle and soothing sets prepared.");
+    }
+
+    function launch10SetCurriculum() {
+      document.getElementById("gamesIntakeCard").style.display = "none";
+      document.getElementById("activeWorkoutArea").style.display = "block";
+      currentSetIdx = 0;
+      loadCurriculumSet(currentSetIdx);
+    }
+
+    function resetCurriculumIntake() {
+      document.getElementById("activeWorkoutArea").style.display = "none";
+      document.getElementById("gamesIntakeCard").style.display = "block";
+    }
+
+    const tenSets = [
+      {
+        title: "Set 1: Spatial Memory Match",
+        desc: "Find and match identical card pairs.",
+        guide: "Set 1: Memory Pairs. Tap cards to reveal matching symbols.",
+        render: renderCurriculumSet1
+      },
+      {
+        title: "Set 2: Sequence Number Memory",
+        desc: "Watch the highlighted number sequence and reproduce it in order.",
+        guide: "Set 2: Sequence Memory. Watch the flashing numbers and enter them.",
+        render: renderCurriculumSet2
+      },
+      {
+        title: "Set 3: Visual Item Discrimination",
+        desc: "Locate the requested target object among distractors.",
+        guide: "Set 3: Visual Search. Find the requested object.",
+        render: renderCurriculumSet3
+      },
+      {
+        title: "Set 4: Color Tone Harmony",
+        desc: "Identify and tap the requested color button.",
+        guide: "Set 4: Color Harmony. Tap the requested color.",
+        render: renderCurriculumSet4
+      },
+      {
+        title: "Set 5: Mental Arithmetic & Logic",
+        desc: "Solve the calculation to keep logic pathways active.",
+        guide: "Set 5: Number Logic. Choose the correct answer.",
+        render: renderCurriculumSet5
+      },
+      {
+        title: "Set 6: Directional Orientation",
+        desc: "Identify the correct spatial orientation arrow.",
+        guide: "Set 6: Direction Recognition. Tap the correct arrow orientation.",
+        render: renderCurriculumSet6
+      },
+      {
+        title: "Set 7: Odd One Out Classification",
+        desc: "Identify the object that does not belong in the category.",
+        guide: "Set 7: Odd One Out. Tap the item that is different.",
+        render: renderCurriculumSet7
+      },
+      {
+        title: "Set 8: Psychomotor Reaction Tap",
+        desc: "Tap the visual target as fast as you can when it appears.",
+        guide: "Set 8: Reaction Test. Wait for the circle, then tap as fast as possible.",
+        render: renderCurriculumSet8
+      },
+      {
+        title: "Set 9: Geometric Shape Recall",
+        desc: "Match the requested geometric shape.",
+        guide: "Set 9: Shape Recall. Tap the requested geometric shape.",
+        render: renderCurriculumSet9
+      },
+      {
+        title: "Set 10: Grand Cognitive Finale",
+        desc: "Touch the Heart of Peace to conclude your workout.",
+        guide: "Set 10: Grand Finale! Tap the glowing heart to celebrate.",
+        render: renderCurriculumSet10
+      }
+    ];
+
+    function loadCurriculumSet(idx) {
+      const set = tenSets[idx];
+      document.getElementById("lblSetHeaderTitle").textContent = `Set ${idx + 1} of 10 — ${set.title}`;
+      document.getElementById("lblSetDescription").textContent = set.desc;
+      speakLady(set.guide);
+      set.render();
+
+      const btn = document.getElementById("btnNextSetStep");
+      btn.textContent = idx === 9 ? "🏁 Complete 10 Sets" : "Next Set →";
+    }
+
+    function goToNextSet() {
+      if (currentSetIdx < 9) {
+        currentSetIdx++;
+        loadCurriculumSet(currentSetIdx);
+      } else {
+        SoundFont.successChime();
+        speakLady("Heartfelt congratulations! You completed all 10 cognitive training sets today!");
+        alert("🎉 Congratulations! You completed all 10 sets of cognitive exercises!");
+        resetCurriculumIntake();
+      }
+    }
+
+    function restartCurrentSet() {
+      loadCurriculumSet(currentSetIdx);
+    }
+
+    function ladyRepeatSetInstruction() {
+      speakLady(tenSets[currentSetIdx].guide);
+    }
+
+    /* Set 1: Memory Pairs */
+    function renderCurriculumSet1() {
+      const arena = document.getElementById("curriculumArena");
+      let icons = [];
+      if (currentDementiaStage === 'late') icons = ['🐶'];
+      else if (currentDementiaStage === 'middle') icons = ['☕', '🍎', '🚗', '🔑'];
+      else icons = ['🍌', '🍇', '🍊', '🍎', '🍓', '🍉'];
+
       const cards = [...icons, ...icons].sort(() => Math.random() - 0.5);
-      arena.innerHTML = `<h3 style="margin-bottom:10px;">🧩 Find 4 Matching Pairs</h3><div class="memory-grid" id="memBoard"></div>`;
-      const board = document.getElementById('memBoard');
+      const gridClass = icons.length === 1 ? 'grid-2' : (icons.length === 4 ? 'grid-8' : 'grid-12');
+      arena.innerHTML = `<div class="memory-grid ${gridClass}" id="set1Grid"></div>`;
+      const grid = document.getElementById("set1Grid");
       let first = null, matched = 0;
 
       cards.forEach(sym => {
-        const c = document.createElement('div');
-        c.className = 'mem-card';
-        c.textContent = '?';
+        const c = document.createElement("div");
+        c.className = "mem-card";
+        c.innerHTML = `<div class="mem-card-inner"><div class="mem-f">?</div><div class="mem-b">${sym}</div></div>`;
         c.onclick = () => {
-          if (c.classList.contains('flipped') || c.classList.contains('matched')) return;
-          c.classList.add('flipped');
-          c.textContent = sym;
+          if (c.classList.contains("flipped") || c.classList.contains("matched")) return;
+          c.classList.add("flipped");
           if (!first) { first = { c, sym }; return; }
           if (first.sym === sym) {
-            c.classList.add('matched'); first.c.classList.add('matched');
-            matched++; currentGameScore += 10; first = null;
-            document.getElementById('gameScoreVal').textContent = `Score: ${currentGameScore}`;
-            if (matched === 4) { AudioEngine.chime(); speakLady("Superb! You matched all memory cards."); }
+            c.classList.add("matched"); first.c.classList.add("matched");
+            matched++; first = null;
+            if (matched === icons.length) {
+              SoundFont.successChime();
+              speakLady("Set 1 Complete!");
+              setTimeout(goToNextSet, 1200);
+            }
           } else {
-            setTimeout(() => { c.classList.remove('flipped'); first.c.classList.remove('flipped'); c.textContent = '?'; first.c.textContent = '?'; first = null; }, 700);
+            setTimeout(() => { c.classList.remove("flipped"); first.c.classList.remove("flipped"); first = null; }, 750);
           }
         };
-        board.appendChild(c);
+        grid.appendChild(c);
       });
-      speakLady("Find the matching card pairs.");
     }
 
-    function startSequenceGame() {
-      const arena = document.getElementById('gameArenaContainer');
+    /* Set 2: Sequence */
+    function renderCurriculumSet2() {
+      const arena = document.getElementById("curriculumArena");
       arena.innerHTML = `
-        <h3>🔢 Sequence Memory</h3>
-        <div style="font-size:2.5rem; font-weight:800; color:var(--primary); margin:14px 0;" id="seqNumDisplay">Press START</div>
-        <div style="display:flex; gap:10px; justify-content:center; margin-bottom:14px;">
-          <button class="btn btn-secondary" style="width:60px; height:60px; font-size:1.5rem;" onclick="handleSeqPress(1)">1</button>
-          <button class="btn btn-secondary" style="width:60px; height:60px; font-size:1.5rem;" onclick="handleSeqPress(2)">2</button>
-          <button class="btn btn-secondary" style="width:60px; height:60px; font-size:1.5rem;" onclick="handleSeqPress(3)">3</button>
+        <div style="font-size:2.4rem; font-weight:800; color:var(--primary); margin-bottom:14px;" id="s2Display">Press START</div>
+        <div class="button-options-grid">
+          <button class="option-tap-btn" id="sq1" onclick="handleSeqClick(1)">1</button>
+          <button class="option-tap-btn" id="sq2" onclick="handleSeqClick(2)">2</button>
+          <button class="option-tap-btn" id="sq3" onclick="handleSeqClick(3)">3</button>
         </div>
-        <button class="btn btn-primary" style="width:auto;" onclick="playSeqTrial()">▶ Start 3-Number Sequence</button>
+        <button class="btn btn-primary" style="margin-top:20px; width:auto;" onclick="startSeqTrial()">▶ Start Sequence</button>
       `;
     }
-    let seq = [], userSeq = [], seqActive = false;
-    function playSeqTrial() {
-      seq = [Math.floor(Math.random()*3)+1, Math.floor(Math.random()*3)+1, Math.floor(Math.random()*3)+1];
-      userSeq = []; seqActive = false;
-      document.getElementById('seqNumDisplay').textContent = seq.join(' - ');
-      speakLady("Remember these three numbers.");
-      setTimeout(() => {
-        document.getElementById('seqNumDisplay').textContent = "YOUR TURN";
-        seqActive = true;
-      }, 1800);
-    }
-    function handleSeqPress(n) {
-      if (!seqActive) return;
-      userSeq.push(n);
-      document.getElementById('seqNumDisplay').textContent = userSeq.join(' ');
-      if (userSeq.length === seq.length) {
-        seqActive = false;
-        if (userSeq.join('') === seq.join('')) {
-          currentGameScore += 20;
-          document.getElementById('gameScoreVal').textContent = `Score: ${currentGameScore}`;
-          AudioEngine.chime(); speakLady("Correct sequence!");
+    let seqTarget = [], seqUser = [], seqReady = false;
+    function startSeqTrial() {
+      const len = currentDementiaStage === 'late' ? 2 : 3;
+      seqTarget = []; seqUser = []; seqReady = false;
+      for (let i = 0; i < len; i++) seqTarget.push(Math.floor(Math.random() * 3) + 1);
+
+      document.getElementById("s2Display").textContent = "WATCH...";
+      let i = 0;
+      const t = setInterval(() => {
+        if (i < seqTarget.length) {
+          const btn = document.getElementById(`sq${seqTarget[i]}`);
+          btn.style.background = 'var(--primary)'; btn.style.color = 'white';
+          setTimeout(() => { btn.style.background = 'var(--surface)'; btn.style.color = 'var(--text)'; }, 400);
+          i++;
         } else {
-          speakLady("Not quite. Try again.");
+          clearInterval(t);
+          document.getElementById("s2Display").textContent = "YOUR TURN";
+          seqReady = true;
+        }
+      }, 700);
+    }
+    function handleSeqClick(n) {
+      if (!seqReady) return;
+      seqUser.push(n);
+      document.getElementById("s2Display").textContent = seqUser.join(' ');
+      if (seqUser.length === seqTarget.length) {
+        seqReady = false;
+        if (seqUser.join('') === seqTarget.join('')) {
+          SoundFont.successChime(); speakLady("Correct sequence! Set 2 complete.");
+          setTimeout(goToNextSet, 1200);
+        } else {
+          SoundFont.errorTone(); speakLady("Sequence error. Try again.");
         }
       }
     }
 
-    function startObjectGame() {
-      const arena = document.getElementById('gameArenaContainer');
+    /* Set 3: Object Discrimination */
+    function renderCurriculumSet3() {
+      const arena = document.getElementById("curriculumArena");
+      const items = [{n:'Key', i:'🔑'}, {n:'Cup', i:'☕'}, {n:'Clock', i:'⏰'}, {n:'Book', i:'📖'}];
+      const target = items[Math.floor(Math.random() * items.length)];
       arena.innerHTML = `
-        <h3>☕ Find: Coffee Cup</h3>
-        <div style="display:flex; gap:14px; justify-content:center; margin-top:20px;">
-          <button class="btn btn-secondary" style="width:80px; height:80px; font-size:2.4rem;" onclick="handleObjFind(false)">🔑</button>
-          <button class="btn btn-secondary" style="width:80px; height:80px; font-size:2.4rem;" onclick="handleObjFind(true)">☕</button>
-          <button class="btn btn-secondary" style="width:80px; height:80px; font-size:2.4rem;" onclick="handleObjFind(false)">⏰</button>
+        <h3 style="margin-bottom:14px; font-size:1.4rem;">Find: ${target.i} ${target.n}</h3>
+        <div class="button-options-grid">
+          ${items.sort(() => Math.random() - 0.5).map(x => `
+            <button class="option-tap-btn" onclick="handleSet3Tap('${x.n}', '${target.n}')">${x.i} ${x.n}</button>
+          `).join('')}
         </div>
       `;
-      speakLady("Find the coffee cup.");
     }
-    function handleObjFind(isCorrect) {
-      if (isCorrect) {
-        currentGameScore += 15;
-        document.getElementById('gameScoreVal').textContent = `Score: ${currentGameScore}`;
-        AudioEngine.chime(); speakLady("You found the coffee cup!");
-      } else { speakLady("Try again."); }
+    function handleSet3Tap(c, t) {
+      if (c === t) {
+        SoundFont.successChime(); speakLady("Found the item! Set 3 complete.");
+        setTimeout(goToNextSet, 1200);
+      } else { SoundFont.errorTone(); }
     }
 
-    function startReactionGame() {
-      const arena = document.getElementById('gameArenaContainer');
+    /* Set 4: Color Harmony */
+    function renderCurriculumSet4() {
+      const arena = document.getElementById("curriculumArena");
       arena.innerHTML = `
-        <h3>⚡ Tap the Target Fast</h3>
-        <div id="reactTarget" style="width:120px; height:120px; border-radius:50%; background:var(--primary); display:none; margin:20px auto; cursor:pointer;" onclick="handleReactTap()"></div>
-        <p id="reactMsg" style="font-weight:700; color:var(--text-muted); margin:16px 0;">Wait for the signal...</p>
-        <button class="btn btn-primary" style="width:auto;" onclick="armReactTest()">▶ Start Test</button>
+        <h3 style="margin-bottom:14px; font-size:1.4rem;">Tap the Color: <strong>BLUE</strong></h3>
+        <div class="button-options-grid">
+          <button class="option-tap-btn" style="background:#0284c7; color:white;" onclick="handleSet4Answer(true)">Blue</button>
+          <button class="option-tap-btn" style="background:#16a34a; color:white;" onclick="handleSet4Answer(false)">Green</button>
+        </div>
       `;
     }
-    let rStart = null;
-    function armReactTest() {
-      document.getElementById('reactTarget').style.display = 'none';
-      document.getElementById('reactMsg').textContent = 'Wait for blue circle...';
+    function handleSet4Answer(ok) {
+      if (ok) { SoundFont.successChime(); speakLady("Color matched! Set 4 complete."); setTimeout(goToNextSet, 1200); }
+      else SoundFont.errorTone();
+    }
+
+    /* Set 5: Number Logic */
+    function renderCurriculumSet5() {
+      const arena = document.getElementById("curriculumArena");
+      arena.innerHTML = `
+        <h3 style="margin-bottom:14px; font-size:1.4rem;">What is: <strong>5 + 3 = ?</strong></h3>
+        <div class="button-options-grid">
+          <button class="option-tap-btn" onclick="handleSet5Answer(false)">7</button>
+          <button class="option-tap-btn" onclick="handleSet5Answer(true)">8</button>
+          <button class="option-tap-btn" onclick="handleSet5Answer(false)">9</button>
+        </div>
+      `;
+    }
+    function handleSet5Answer(ok) {
+      if (ok) { SoundFont.successChime(); speakLady("Math calculated! Set 5 complete."); setTimeout(goToNextSet, 1200); }
+      else SoundFont.errorTone();
+    }
+
+    /* Set 6: Direction */
+    function renderCurriculumSet6() {
+      const arena = document.getElementById("curriculumArena");
+      arena.innerHTML = `
+        <h3 style="margin-bottom:14px; font-size:1.4rem;">Tap the Arrow Pointing <strong>UP (⬆️)</strong></h3>
+        <div class="button-options-grid">
+          <button class="option-tap-btn" onclick="handleSet6Answer(false)">⬇️</button>
+          <button class="option-tap-btn" onclick="handleSet6Answer(true)">⬆️</button>
+          <button class="option-tap-btn" onclick="handleSet6Answer(false)">➡️</button>
+        </div>
+      `;
+    }
+    function handleSet6Answer(ok) {
+      if (ok) { SoundFont.successChime(); speakLady("Direction recognized! Set 6 complete."); setTimeout(goToNextSet, 1200); }
+      else SoundFont.errorTone();
+    }
+
+    /* Set 7: Odd One Out */
+    function renderCurriculumSet7() {
+      const arena = document.getElementById("curriculumArena");
+      arena.innerHTML = `
+        <h3 style="margin-bottom:14px; font-size:1.4rem;">Which is NOT a fruit?</h3>
+        <div class="button-options-grid">
+          <button class="option-tap-btn" onclick="handleSet7Answer(false)">🍎 Apple</button>
+          <button class="option-tap-btn" onclick="handleSet7Answer(true)">🚗 Car</button>
+          <button class="option-tap-btn" onclick="handleSet7Answer(false)">🍌 Banana</button>
+        </div>
+      `;
+    }
+    function handleSet7Answer(ok) {
+      if (ok) { SoundFont.successChime(); speakLady("Outlier spotted! Set 7 complete."); setTimeout(goToNextSet, 1200); }
+      else SoundFont.errorTone();
+    }
+
+    /* Set 8: Reaction Challenge */
+    function renderCurriculumSet8() {
+      const arena = document.getElementById("curriculumArena");
+      arena.innerHTML = `
+        <div style="width:140px; height:140px; border-radius:50%; background:var(--primary); display:none; cursor:pointer;" id="s8Target" onclick="handleSet8Click()"></div>
+        <p style="font-size:1.2rem; font-weight:700; color:var(--text-muted); margin:16px 0;" id="s8Text">Wait for signal...</p>
+        <button class="btn btn-primary" style="width:auto;" onclick="startSet8Test()">▶ Start Reaction Test</button>
+      `;
+    }
+    let s8StartTime = null;
+    function startSet8Test() {
+      const t = document.getElementById("s8Target");
+      const txt = document.getElementById("s8Text");
+      t.style.display = "none";
+      txt.textContent = "Wait for blue circle...";
       setTimeout(() => {
-        document.getElementById('reactTarget').style.display = 'block';
-        rStart = performance.now();
+        t.style.display = "block";
+        s8StartTime = performance.now();
+        txt.textContent = "TAP NOW!";
       }, 1500 + Math.random() * 2000);
     }
-    function handleReactTap() {
-      const ms = Math.round(performance.now() - rStart);
-      document.getElementById('reactTarget').style.display = 'none';
-      document.getElementById('reactMsg').textContent = `Reaction Speed: ${ms} ms (+20 pts)`;
-      currentGameScore += 20;
-      document.getElementById('gameScoreVal').textContent = `Score: ${currentGameScore}`;
-      AudioEngine.chime();
-      speakLady(`Good tap! Reaction time was ${ms} milliseconds.`);
+    function handleSet8Click() {
+      const ms = Math.round(performance.now() - s8StartTime);
+      document.getElementById("s8Target").style.display = "none";
+      document.getElementById("s8Text").textContent = `Speed: ${ms} ms! Set 8 complete.`;
+      SoundFont.successChime();
+      speakLady(`Reflex speed ${ms} milliseconds. Set 8 complete.`);
+      setTimeout(goToNextSet, 1400);
+    }
+
+    /* Set 9: Geometric Shapes */
+    function renderCurriculumSet9() {
+      const arena = document.getElementById("curriculumArena");
+      arena.innerHTML = `
+        <h3 style="margin-bottom:14px; font-size:1.4rem;">Tap the <strong>⭐ STAR</strong></h3>
+        <div class="button-options-grid">
+          <button class="option-tap-btn" onclick="handleSet9Answer(false)">⬛ Square</button>
+          <button class="option-tap-btn" onclick="handleSet9Answer(true)">⭐ Star</button>
+          <button class="option-tap-btn" onclick="handleSet9Answer(false)">🔵 Circle</button>
+        </div>
+      `;
+    }
+    function handleSet9Answer(ok) {
+      if (ok) { SoundFont.successChime(); speakLady("Shape matched! Set 9 complete."); setTimeout(goToNextSet, 1200); }
+      else SoundFont.errorTone();
+    }
+
+    /* Set 10: Grand Finale */
+    function renderCurriculumSet10() {
+      const arena = document.getElementById("curriculumArena");
+      arena.innerHTML = `
+        <div style="font-size:6.5rem; cursor:pointer;" onclick="handleSet10Click()">💖</div>
+        <h3 style="font-size:1.6rem; color:var(--primary); margin-top:14px;">Touch the Heart of Peace</h3>
+        <p style="color:var(--text-muted);">Celebrate completing all 10 cognitive milestones!</p>
+      `;
+    }
+    function handleSet10Click() {
+      goToNextSet();
     }
 
     /* ==========================================================================
-       8. AUTHENTICATION (FIREBASE & GUEST)
+       7. NAVIGATION & ACCESSIBILITY CONTROLS
        ========================================================================== */
-    function handleFirebaseAuthLogin() {
-      const email = document.getElementById('authEmailInput').value.trim();
-      const pass = document.getElementById('authPassInput').value.trim();
-      if (!auth) return alert("Firebase Auth not loaded.");
-      auth.signInWithEmailAndPassword(email, pass).catch(err => alert("Sign In: " + err.message));
+    function showScreen(screenId) {
+      document.querySelectorAll(".view-screen").forEach(el => el.classList.remove("active"));
+      document.querySelectorAll(".nav-item").forEach(el => el.classList.remove("active"));
+      document.getElementById(`screen-${screenId}`).classList.add("active");
+      const btn = Array.from(document.querySelectorAll(".nav-item")).find(b => b.getAttribute("onclick").includes(screenId));
+      if (btn) btn.classList.add("active");
     }
-    function handleGuestLogin() {
+
+    let currentScale = 1.05;
+    function zoomFont(val) {
+      currentScale = Math.min(Math.max(currentScale + val, 0.9), 1.35);
+      document.documentElement.style.setProperty("--font-scale", `${currentScale}rem`);
+    }
+    function toggleContrast() {
+      document.body.classList.toggle("high-contrast");
+    }
+
+    function performFirebaseAuth() {
+      const email = document.getElementById("iptAuthEmail").value.trim();
+      const pass = document.getElementById("iptAuthPassword").value.trim();
+      if (!auth) return alert("Firebase Auth unavailable.");
+      auth.signInWithEmailAndPassword(email, pass).catch(e => alert(e.message));
+    }
+    function performGuestAuth() {
       if (auth) auth.signInAnonymously().catch(() => {});
-      document.getElementById('authLoggedOutView').style.display = 'none';
-      document.getElementById('authLoggedInView').style.display = 'block';
-      document.getElementById('authUserEmail').textContent = "Guest Patient";
+      document.getElementById("boxLoggedOut").style.display = "none";
+      document.getElementById("boxLoggedIn").style.display = "block";
+      document.getElementById("lblActiveUserEmail").textContent = "Guest Patient";
     }
-    function handleFirebaseSignOut() {
+    function performFirebaseSignOut() {
       if (auth) auth.signOut();
     }
 
     /* ==========================================================================
-       9. NAVIGATION & ACCESSIBILITY
+       8. INITIALIZATION ON DOM READY
        ========================================================================== */
-    function switchTab(viewId) {
-      document.querySelectorAll('.screen-view').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.nav-tab').forEach(el => el.classList.remove('active'));
-      document.getElementById(`view-${viewId}`).classList.add('active');
-      const activeBtn = Array.from(document.querySelectorAll('.nav-tab')).find(b => b.getAttribute('onclick').includes(viewId));
-      if (activeBtn) activeBtn.classList.add('active');
-    }
-
-    let fontScale = 1.05;
-    function adjustFont(delta) {
-      fontScale = Math.min(Math.max(fontScale + delta, 0.9), 1.35);
-      document.documentElement.style.setProperty('--font-scale', `${fontScale}rem`);
-    }
-    function toggleHighContrast() {
-      document.body.classList.toggle('high-contrast');
-    }
-
-    // Initialize application on load
-    window.addEventListener('DOMContentLoaded', () => {
-      loadRoutines();
-      initEsp32Listener();
-      const d = new Date();
-      document.getElementById('homeDateLabel').textContent = d.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' });
-      setTimeout(() => speakLady("Welcome to CognitiveCare. Today's schedule is ready."), 800);
+    window.addEventListener("DOMContentLoaded", () => {
+      loadDailyRoutines();
+      initEsp32FirebaseListener();
+      const now = new Date();
+      document.getElementById("lblCurrentDate").textContent = now.toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric" });
+      setTimeout(() => speakLady("Welcome to CognitiveCare. Your daily schedule is ready."), 900);
     });
   </script>
 </body>
