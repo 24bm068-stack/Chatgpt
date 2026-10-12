@@ -1,0 +1,1084 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CognitiveCare — 10-Set AI Cognitive Training Platform</title>
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Firebase Compat SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.8.0/firebase-database-compat.js"></script>
+
+  <style>
+    :root {
+      --bg: #edf6fd;
+      --surface: #ffffff;
+      --surface-subtle: #f4f9fd;
+      --border: #cde4f5;
+      --text: #0c273d;
+      --text-muted: #537189;
+      --primary: #0284c7;
+      --primary-hover: #0369a1;
+      --primary-light: #e0f2fe;
+      --lady-ai: #ec4899;
+      --lady-ai-light: #fce7f3;
+      --success: #10b981;
+      --success-light: #dcfce7;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --radius-lg: 20px;
+      --radius-md: 14px;
+      --shadow: 0 8px 24px rgba(12, 39, 61, 0.08);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    /* Top Sticky Header */
+    header {
+      background: var(--surface);
+      border-bottom: 2px solid var(--border);
+      padding: 14px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      box-shadow: 0 2px 10px rgba(0,0,0,0.03);
+    }
+    .brand { display: flex; align-items: center; gap: 12px; }
+    .brand-icon {
+      font-size: 2rem;
+      background: var(--primary-light);
+      width: 46px; height: 46px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .brand-text h1 { font-size: 1.3rem; font-weight: 800; color: var(--primary); }
+    .brand-text p { font-size: 0.78rem; color: var(--text-muted); font-weight: 600; }
+
+    /* Lady AI Live Status Badge */
+    .lady-ai-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--lady-ai-light);
+      border: 1.5px solid var(--lady-ai);
+      padding: 6px 14px;
+      border-radius: 999px;
+      color: #9d174d;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      user-select: none;
+    }
+    .lady-avatar {
+      width: 28px; height: 28px;
+      background: var(--lady-ai);
+      color: white;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      position: relative;
+    }
+    .lady-avatar.speaking::after {
+      content: '';
+      position: absolute;
+      width: 100%; height: 100%;
+      border-radius: 50%;
+      border: 2px solid var(--lady-ai);
+      animation: pulse 1s infinite;
+    }
+    @keyframes pulse { 0% { transform: scale(1); opacity: 1; } 100% { transform: scale(1.6); opacity: 0; } }
+
+    .status-pill {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 999px;
+    }
+    .status-pill.connected { background: var(--success-light); color: var(--success); }
+    .status-pill.offline { background: #fee2e2; color: var(--danger); }
+
+    .container {
+      width: 92%;
+      max-width: 1040px;
+      margin: 28px auto;
+      flex: 1;
+    }
+    .card {
+      background: var(--surface);
+      border-radius: var(--radius-lg);
+      border: 1px solid var(--border);
+      padding: 28px;
+      margin-bottom: 24px;
+      box-shadow: var(--shadow);
+    }
+    .card-title {
+      font-size: 1.3rem;
+      font-weight: 800;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    /* Form Layout */
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 0.88rem;
+      font-weight: 700;
+      margin-bottom: 8px;
+    }
+    .form-control {
+      width: 100%;
+      padding: 14px 16px;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius-md);
+      font-size: 1rem;
+      font-family: inherit;
+      background: var(--surface-subtle);
+      color: var(--text);
+    }
+    .form-control:focus {
+      outline: none;
+      border-color: var(--primary);
+      background: #fff;
+      box-shadow: 0 0 0 4px rgba(2, 132, 199, 0.12);
+    }
+
+    /* Stage Options */
+    .stage-options {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      margin: 16px 0 24px;
+    }
+    .stage-card {
+      background: var(--surface-subtle);
+      border: 2px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 18px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.25s;
+    }
+    .stage-card:hover { border-color: var(--primary); transform: translateY(-2px); }
+    .stage-card.selected {
+      border-color: var(--primary);
+      background: var(--primary-light);
+      box-shadow: 0 4px 16px rgba(2, 132, 199, 0.2);
+    }
+    .stage-card h4 { font-size: 1.05rem; font-weight: 800; margin-bottom: 6px; }
+    .stage-card p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.4; }
+    .stage-badge {
+      display: inline-block;
+      margin-top: 10px;
+      font-size: 0.75rem;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 999px;
+      text-transform: uppercase;
+    }
+    .stage-card.early .stage-badge { background: #fee2e2; color: #991b1b; }
+    .stage-card.middle .stage-badge { background: #fef3c7; color: #92400e; }
+    .stage-card.late .stage-badge { background: #dcfce7; color: #15803d; }
+
+    /* Buttons */
+    .btn {
+      font-family: inherit;
+      font-size: 1rem;
+      font-weight: 700;
+      padding: 14px 26px;
+      border-radius: var(--radius-md);
+      border: none;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.2s;
+    }
+    .btn-primary { background: var(--primary); color: white; }
+    .btn-primary:hover { background: var(--primary-hover); }
+    .btn-secondary { background: var(--surface-subtle); border: 1.5px solid var(--border); color: var(--text); }
+    .btn-success { background: var(--success); color: white; }
+    .btn-lg { font-size: 1.15rem; padding: 16px 36px; border-radius: var(--radius-lg); }
+
+    /* Progress & Stats Ribbon */
+    .progress-bar-container {
+      width: 100%;
+      height: 12px;
+      background: var(--border);
+      border-radius: 999px;
+      overflow: hidden;
+      margin-bottom: 20px;
+    }
+    .progress-bar-fill {
+      height: 100%;
+      width: 10%;
+      background: linear-gradient(90deg, var(--primary), #38bdf8);
+      transition: width 0.4s ease;
+    }
+    .stats-ribbon {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+    .stat-box {
+      background: var(--surface-subtle);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 14px;
+      text-align: center;
+    }
+    .stat-box strong { display: block; font-size: 1.8rem; color: var(--primary); font-weight: 800; }
+    .stat-box span { font-size: 0.8rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; }
+
+    /* Game Arena */
+    .game-arena {
+      background: var(--surface-subtle);
+      border: 2px dashed var(--border);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      min-height: 380px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin: 20px 0;
+      position: relative;
+    }
+
+    /* Grids for Sets */
+    .memory-grid { display: grid; gap: 14px; max-width: 640px; margin: 0 auto; width: 100%; }
+    .cards-2 { grid-template-columns: repeat(2, 1fr); max-width: 340px; }
+    .cards-8 { grid-template-columns: repeat(4, 1fr); }
+    .cards-12 { grid-template-columns: repeat(4, 1fr); }
+
+    .mem-card { aspect-ratio: 1; cursor: pointer; position: relative; user-select: none; }
+    .mem-inner { width: 100%; height: 100%; position: relative; transform-style: preserve-3d; transition: transform 0.4s; border-radius: var(--radius-md); }
+    .mem-card.flipped .mem-inner { transform: rotateY(180deg); }
+    .mem-front, .mem-back {
+      position: absolute; width: 100%; height: 100%; backface-visibility: hidden; border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center; font-size: 2.8rem; border: 2px solid var(--border);
+    }
+    .mem-front { background: var(--primary); color: white; font-weight: 800; font-size: 2rem; }
+    .mem-back { background: var(--surface); transform: rotateY(180deg); }
+    .mem-card.matched .mem-back { background: var(--success-light); border-color: var(--success); }
+
+    .options-grid { display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; margin-top: 16px; }
+    .option-btn {
+      min-width: 120px; padding: 18px 24px; font-size: 1.4rem; font-weight: 800; border-radius: var(--radius-md);
+      border: 2px solid var(--border); background: var(--surface); cursor: pointer; transition: all 0.2s;
+    }
+    .option-btn:hover { border-color: var(--primary); transform: translateY(-2px); }
+
+    .big-target-btn {
+      width: 180px; height: 180px; border-radius: 50%; font-size: 4.5rem;
+      display: flex; align-items: center; justify-content: center; border: 4px solid var(--primary);
+      background: var(--surface); cursor: pointer; box-shadow: 0 0 30px rgba(2, 132, 199, 0.3);
+      animation: pulse 1.5s infinite alternate;
+    }
+
+    @media (max-width: 768px) {
+      .stage-options, .stats-ribbon { grid-template-columns: 1fr; }
+      .memory-grid.cards-8, .memory-grid.cards-12 { grid-template-columns: repeat(3, 1fr); }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <div class="brand">
+      <div class="brand-icon">🧠</div>
+      <div class="brand-text">
+        <h1>CognitiveCare</h1>
+        <p>10-Set Adaptive Cognitive Curriculum</p>
+      </div>
+    </div>
+
+    <div style="display:flex; align-items:center; gap:14px;">
+      <div class="lady-ai-badge" id="ladyAiBadge" onclick="speakLadyGuide()">
+        <div class="lady-avatar" id="ladyAvatar">👩‍⚕️</div>
+        <span id="ladyAiStatusText">Lady AI: "Tap for Voice Guide"</span>
+      </div>
+      <span id="firebaseStatus" class="status-pill offline">Firebase: Connecting...</span>
+    </div>
+  </header>
+
+  <div class="container">
+
+    <!-- ==================== SCREEN 1: INTAKE & DEMENTIA STAGE ==================== -->
+    <section id="intakeSection" class="card">
+      <div class="card-title">
+        <span>👤 Patient Clinical Intake & Stage Selection</span>
+      </div>
+      <p style="color:var(--text-muted); font-size:0.95rem; margin-bottom:20px;">
+        Enter patient details. Lady AI will <strong>automatically generate 10 complete cognitive game sets</strong> matching the selected progression stage.
+      </p>
+
+      <form onsubmit="handleStartCurriculum(event)">
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Patient Full Name *</label>
+            <input type="text" id="patientName" class="form-control" placeholder="e.g. Eleanor Vance" required>
+          </div>
+          <div class="form-group">
+            <label>Age *</label>
+            <input type="number" id="patientAge" class="form-control" placeholder="e.g. 74" required>
+          </div>
+          <div class="form-group">
+            <label>Gender *</label>
+            <select id="patientGender" class="form-control" required>
+              <option value="">-- Select Gender --</option>
+              <option value="Female">Female</option>
+              <option value="Male">Male</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Caregiver Name</label>
+            <input type="text" id="caregiverName" class="form-control" placeholder="e.g. David Vance">
+          </div>
+        </div>
+
+        <label style="font-size:0.95rem; font-weight:800; display:block; margin-top:10px;">
+          Select Dementia Progression Stage (Determines Difficulty of All 10 Sets):
+        </label>
+        
+        <div class="stage-options">
+          <!-- 1. BEGINNING STAGE -> HARD (10 SETS) -->
+          <div class="stage-card early selected" onclick="selectStage('early')" id="card-early">
+            <h4>🌱 Beginning Stage</h4>
+            <p>High recall. Generates <strong>10 Advanced / Hard</strong> stimulating sets.</p>
+            <span class="stage-badge">Difficulty: Hard</span>
+          </div>
+
+          <!-- 2. MODERATE STAGE -> MEDIUM (10 SETS) -->
+          <div class="stage-card middle" onclick="selectStage('middle')" id="card-middle">
+            <h4>🌿 Moderate Stage</h4>
+            <p>Noticeable memory lapses. Generates <strong>10 Balanced / Medium</strong> sets.</p>
+            <span class="stage-badge">Difficulty: Medium</span>
+          </div>
+
+          <!-- 3. LAST STAGE -> EASY (10 SETS) -->
+          <div class="stage-card late" onclick="selectStage('late')" id="card-late">
+            <h4>🌸 Last / Advanced Stage</h4>
+            <p>Needs gentle comfort. Generates <strong>10 Soothing / Easy</strong> sets.</p>
+            <span class="stage-badge">Difficulty: Gentle & Easy</span>
+          </div>
+        </div>
+
+        <div style="display:flex; justify-content:center; margin-top:28px;">
+          <button type="submit" class="btn btn-primary btn-lg">
+            ⚡ Generate 10 Cognitive Game Sets for this Stage
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- ==================== SCREEN 2: ACTIVE 10-SET WORKOUT ==================== -->
+    <section id="gameWorkspace" style="display:none;">
+      
+      <!-- Top Patient & Progress Banner -->
+      <div class="card" style="padding:16px 24px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div>
+          <span style="font-size:0.85rem; color:var(--text-muted);">Active Patient:</span>
+          <strong id="barPatientName" style="font-size:1.15rem; margin-left:6px;">Eleanor Vance</strong>
+          <span id="barStageBadge" class="stage-badge" style="margin-left:10px; background:#dcfce7; color:#15803d;">Curriculum: 10 Sets</span>
+        </div>
+        <button class="btn btn-secondary" style="padding:8px 16px; font-size:0.85rem;" onclick="returnToIntake()">
+          👤 Switch Patient / Stage
+        </button>
+      </div>
+
+      <!-- 10-Level Progress Bar -->
+      <div class="progress-bar-container">
+        <div class="progress-bar-fill" id="progressBarFill"></div>
+      </div>
+
+      <!-- Stats Ribbon -->
+      <div class="stats-ribbon">
+        <div class="stat-box"><strong id="statScore">0</strong><span>Total Score</span></div>
+        <div class="stat-box"><strong id="statLevel">Set 1 of 10</strong><span>Current Set</span></div>
+        <div class="stat-box"><strong id="statMistakes">0</strong><span>Mistakes</span></div>
+        <div class="stat-box"><strong id="statAttempts">0</strong><span>Attempts</span></div>
+      </div>
+
+      <!-- THE DYNAMIC GAME ARENA -->
+      <div class="card">
+        <div class="card-title">
+          <span id="arenaGameTitle">Set 1: Visual Memory Match</span>
+          <button class="btn btn-secondary" style="padding:6px 12px; font-size:0.8rem;" onclick="ladyRepeatInstructions()">🔊 Hear Lady AI Instructions</button>
+        </div>
+        <p style="color:var(--text-muted); font-size:0.95rem;" id="arenaGameDesc">Description...</p>
+
+        <div class="game-arena" id="dynamicArena">
+          <!-- Game board injected dynamically -->
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-top:14px;">
+          <button class="btn btn-secondary" onclick="restartCurrentSet()">🔄 Restart This Set</button>
+          <button class="btn btn-primary" id="btnNextSet" onclick="advanceToNextSet()">Next Set →</button>
+        </div>
+      </div>
+
+      <!-- Live Camera Supervision Preview -->
+      <div class="card" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:12px;">
+        <div style="display:flex; align-items:center; gap:14px;">
+          <video id="cameraVideo" autoplay playsinline muted style="width:140px; height:90px; border-radius:10px; background:#111; object-fit:cover;"></video>
+          <div>
+            <div style="font-weight:700; font-size:0.95rem;">Front Camera Supervision</div>
+            <div style="font-size:0.8rem; color:var(--text-muted);">Client-side privacy: Video never leaves your device.</div>
+          </div>
+        </div>
+        <div style="display:flex; gap:10px;">
+          <button class="btn btn-secondary" style="font-size:0.85rem; padding:8px 14px;" onclick="toggleCamera(true)">📷 Start Camera</button>
+          <button class="btn btn-secondary" style="font-size:0.85rem; padding:8px 14px;" onclick="toggleCamera(false)">Stop Camera</button>
+        </div>
+      </div>
+
+    </section>
+
+    <!-- ==================== FINAL CELEBRATION SCREEN ==================== -->
+    <section id="finalScreen" class="card" style="display:none; text-align:center; padding:40px 20px;">
+      <h2 style="font-size:2.5rem; color:var(--primary);">🏆 10 Sets Completed!</h2>
+      <p style="font-size:1.15rem; color:var(--text-muted); margin-top:8px;">
+        Magnificent! You have conquered all 10 personalized cognitive training sets!
+      </p>
+      <div style="font-size:5.5rem; font-weight:800; color:var(--primary); margin:14px 0;" id="finalScoreVal">0</div>
+      <p style="font-weight:700; color:var(--text-muted);">Total Cognitive Care Points Earned</p>
+      <div style="margin-top:28px;">
+        <button class="btn btn-primary btn-lg" onclick="returnToIntake()">🔄 Start New Session</button>
+      </div>
+    </section>
+
+  </div>
+
+  <!-- ==========================================================================
+       LOGIC SCRIPT: 10 SETS ENGINE + LADY AI + FIREBASE
+       ========================================================================== -->
+  <script>
+    /* 1. FIREBASE CONFIGURATION */
+    const firebaseConfig = {
+      apiKey: "AIzaSyBS0nV2kUo68cZIN3wrDYahscgkVnS3Tr4",
+      authDomain: "cognitivecare24bm068.firebaseapp.com",
+      databaseURL: "https://cognitivecare24bm068-default-rtdb.asia-southeast1.firebasedatabase.app",
+      projectId: "cognitivecare24bm068",
+      storageBucket: "cognitivecare24bm068.firebasestorage.app",
+      messagingSenderId: "252318365732",
+      appId: "1:252318365732:web:41cff9ca72823b410e40b1",
+      measurementId: "G-4V3VHVMB0"
+    };
+
+    let db = null;
+    try {
+      firebase.initializeApp(firebaseConfig);
+      db = firebase.database();
+      db.ref(".info/connected").on("value", function(snap) {
+        const badge = document.getElementById("firebaseStatus");
+        if (snap.val() === true) {
+          badge.textContent = "Firebase: Connected";
+          badge.className = "status-pill connected";
+        } else {
+          badge.textContent = "Firebase: Offline";
+          badge.className = "status-pill offline";
+        }
+      });
+    } catch(e) {}
+
+    /* 2. LADY AI VOICE ASSISTANT */
+    function speakLady(text) {
+      if (!('speechSynthesis' in window)) return;
+      window.speechSynthesis.cancel();
+
+      const ut = new SpeechSynthesisUtterance(text);
+      ut.lang = "en-US";
+      ut.rate = 0.9;
+      ut.pitch = 1.15;
+
+      const voices = window.speechSynthesis.getVoices();
+      const ladyVoice = voices.find(v => 
+        v.lang.startsWith("en") && (
+          v.name.toLowerCase().includes("female") ||
+          v.name.toLowerCase().includes("zira") ||
+          v.name.toLowerCase().includes("samantha") ||
+          v.name.toLowerCase().includes("victoria")
+        )
+      ) || voices.find(v => v.lang.startsWith("en"));
+
+      if (ladyVoice) ut.voice = ladyVoice;
+
+      const avatar = document.getElementById("ladyAvatar");
+      const statusText = document.getElementById("ladyAiStatusText");
+      ut.onstart = () => {
+        avatar.classList.add("speaking");
+        statusText.textContent = "Lady AI: Speaking...";
+      };
+      ut.onend = () => {
+        avatar.classList.remove("speaking");
+        statusText.textContent = "Lady AI: Ready";
+      };
+      window.speechSynthesis.speak(ut);
+    }
+
+    function speakLadyGuide() {
+      speakLady("Hello, I am Lady AI. Please register the patient details and select the dementia stage. I will automatically generate ten personalized cognitive training sets for you.");
+    }
+
+    /* 3. APPLICATION STATE */
+    let selectedStage = 'early';
+    let patient = { name: '', age: '', gender: '', caregiver: '', stage: '' };
+    let currentSetIndex = 0;
+    let totalScore = 0, mistakes = 0, attempts = 0;
+
+    function selectStage(stage) {
+      selectedStage = stage;
+      document.querySelectorAll('.stage-card').forEach(c => c.classList.remove('selected'));
+      document.getElementById(`card-${stage}`).classList.add('selected');
+
+      if (stage === 'early') speakLady("Beginning stage selected. I will generate ten advanced challenge sets.");
+      if (stage === 'middle') speakLady("Moderate stage selected. I will generate ten balanced memory and cognitive sets.");
+      if (stage === 'late') speakLady("Last stage selected. I will generate ten soothing, gentle sets designed for comfort and ease.");
+    }
+
+    function handleStartCurriculum(e) {
+      e.preventDefault();
+      patient.name = document.getElementById('patientName').value.trim();
+      patient.age = document.getElementById('patientAge').value;
+      patient.gender = document.getElementById('patientGender').value;
+      patient.caregiver = document.getElementById('caregiverName').value.trim();
+      patient.stage = selectedStage;
+
+      document.getElementById('intakeSection').style.display = 'none';
+      document.getElementById('gameWorkspace').style.display = 'block';
+
+      document.getElementById('barPatientName').textContent = `${patient.name} (${patient.age} y/o, ${patient.gender})`;
+      document.getElementById('barStageBadge').textContent = `Stage: ${selectedStage.toUpperCase()} (10 Sets)`;
+
+      totalScore = 0; mistakes = 0; attempts = 0; currentSetIndex = 0;
+      updateStats();
+
+      speakLady(`Welcome ${patient.name}. Generating your personalized curriculum of ten cognitive sets. Let us begin with Set 1!`);
+      loadCurrentSet();
+    }
+
+    function returnToIntake() {
+      document.getElementById('gameWorkspace').style.display = 'none';
+      document.getElementById('finalScreen').style.display = 'none';
+      document.getElementById('intakeSection').style.display = 'block';
+      speakLady("Returned to patient intake.");
+    }
+
+    function updateStats() {
+      document.getElementById('statScore').textContent = totalScore;
+      document.getElementById('statLevel').textContent = `Set ${currentSetIndex + 1} of 10`;
+      document.getElementById('statMistakes').textContent = mistakes;
+      document.getElementById('statAttempts').textContent = attempts;
+      document.getElementById('progressBarFill').style.width = `${((currentSetIndex + 1) / 10) * 100}%`;
+    }
+
+    function advanceToNextSet() {
+      if (currentSetIndex < 9) {
+        currentSetIndex++;
+        loadCurrentSet();
+      } else {
+        // All 10 Sets Completed!
+        document.getElementById('gameWorkspace').style.display = 'none';
+        document.getElementById('finalScreen').style.display = 'block';
+        document.getElementById('finalScoreVal').textContent = totalScore;
+        speakLady(`Congratulations ${patient.name}! You completed all ten cognitive sets with a magnificent score of ${totalScore}!`);
+      }
+    }
+
+    function restartCurrentSet() {
+      loadCurrentSet();
+    }
+
+    function ladyRepeatInstructions() {
+      speakLady(curriculum[currentSetIndex].instruction);
+    }
+
+    /* ==========================================================================
+       4. THE 10 COGNITIVE SETS ARCHITECTURE (DYNAMIC ACCORDING TO STAGE)
+       ========================================================================== */
+    const curriculum = [
+      {
+        title: "🧩 Set 1: Spatial Memory Match",
+        desc: "Find and match identical card pairs.",
+        instruction: "Set 1: Memory Match. Click the cards to find matching pairs.",
+        render: renderSet1
+      },
+      {
+        title: "🔢 Set 2: Sequential Memory",
+        desc: "Remember the highlighted numbers and reproduce the sequence.",
+        instruction: "Set 2: Sequence Memory. Watch the highlighted numbers and repeat them in order.",
+        render: renderSet2
+      },
+      {
+        title: "🔍 Set 3: Visual Discrimination & Search",
+        desc: "Spot and tap the requested target item among distractors.",
+        instruction: "Set 3: Visual Search. Look at the requested object and locate it.",
+        render: renderSet3
+      },
+      {
+        title: "🎨 Set 4: Color & Concept Harmony",
+        desc: "Identify and match the requested visual color tone.",
+        instruction: "Set 4: Color Harmony. Tap the matching requested color button.",
+        render: renderSet4
+      },
+      {
+        title: "➕ Set 5: Number Math & Logic Pulse",
+        desc: "Engage mental arithmetic and numerical recognition.",
+        instruction: "Set 5: Number Logic. Select the correct answer to complete the calculation.",
+        render: renderSet5
+      },
+      {
+        title: "🧭 Set 6: Spatial Direction & Orientation",
+        desc: "Recognize directional orientation and visual cues.",
+        instruction: "Set 6: Direction Recognition. Tap the correct arrow pointing in the requested direction.",
+        render: renderSet6
+      },
+      {
+        title: "🧐 Set 7: Odd One Out Categorization",
+        desc: "Spot the item that does not belong to the category.",
+        instruction: "Set 7: Odd One Out. Tap the item that is different from the others.",
+        render: renderSet7
+      },
+      {
+        title: "⚡ Set 8: Psychomotor Reaction Challenge",
+        desc: "Measure motor tapping latency when the stimulus appears.",
+        instruction: "Set 8: Reaction Challenge. Wait for the signal, then tap it as quickly as possible.",
+        render: renderSet8
+      },
+      {
+        title: "📐 Set 9: Geometric Shape Recognition",
+        desc: "Identify matching geometric shapes and symbols.",
+        instruction: "Set 9: Shape Recognition. Tap the matching geometric shape.",
+        render: renderSet9
+      },
+      {
+        title: "💖 Set 10: Grand Cognitive Finale",
+        desc: "The final celebratory cognitive milestone.",
+        instruction: "Set 10: Grand Finale! Complete the final milestone activity.",
+        render: renderSet10
+      }
+    ];
+
+    function loadCurrentSet() {
+      const set = curriculum[currentSetIndex];
+      document.getElementById('arenaGameTitle').textContent = set.title;
+      document.getElementById('arenaGameDesc').textContent = set.desc;
+      updateStats();
+      speakLady(set.instruction);
+      set.render();
+
+      const btn = document.getElementById('btnNextSet');
+      btn.textContent = (currentSetIndex === 9) ? '🏁 Finish All 10 Sets' : 'Next Set →';
+    }
+
+    /* --------------------------------------------------------------------------
+       SET 1: SPATIAL MEMORY MATCH
+       -------------------------------------------------------------------------- */
+    function renderSet1() {
+      const arena = document.getElementById('dynamicArena');
+      let pairs = [];
+      if (selectedStage === 'late') pairs = ['🐶']; // 2 cards total
+      else if (selectedStage === 'middle') pairs = ['☕', '🍎', '🚗', '🔑']; // 8 cards
+      else pairs = ['🍌', '🍇', '🍊', '🍎', '🍓', '🍉']; // 12 cards
+
+      const cards = [...pairs, ...pairs].sort(() => Math.random() - 0.5);
+      const gridClass = pairs.length === 1 ? 'cards-2' : (pairs.length === 4 ? 'cards-8' : 'cards-12');
+      arena.innerHTML = `<div class="memory-grid ${gridClass}" id="set1Grid"></div>`;
+      const grid = document.getElementById('set1Grid');
+      let first = null, matched = 0;
+
+      cards.forEach(sym => {
+        const slot = document.createElement('div');
+        slot.className = 'mem-card';
+        slot.innerHTML = `<div class="mem-inner"><div class="mem-front">?</div><div class="mem-back">${sym}</div></div>`;
+        slot.onclick = () => {
+          if (slot.classList.contains('flipped') || slot.classList.contains('matched')) return;
+          slot.classList.add('flipped');
+          if (!first) { first = { slot, sym }; return; }
+          attempts++;
+          if (first.sym === sym) {
+            slot.classList.add('matched'); first.slot.classList.add('matched');
+            matched++; totalScore += 10; first = null;
+            if (matched === pairs.length) {
+              speakLady("Set 1 Complete! Excellent memory!");
+              updateStats();
+              setTimeout(advanceToNextSet, 1200);
+            }
+          } else {
+            mistakes++;
+            setTimeout(() => { slot.classList.remove('flipped'); first.slot.classList.remove('flipped'); first = null; }, 700);
+          }
+          updateStats();
+        };
+        grid.appendChild(slot);
+      });
+    }
+
+    /* --------------------------------------------------------------------------
+       SET 2: SEQUENTIAL MEMORY
+       -------------------------------------------------------------------------- */
+    function renderSet2() {
+      const arena = document.getElementById('dynamicArena');
+      arena.innerHTML = `
+        <div style="font-size:2.2rem; font-weight:800; color:var(--primary); margin-bottom:14px;" id="set2Display">Press START</div>
+        <div class="options-grid" id="set2Pad">
+          <button class="option-btn" id="s2_1" onclick="handleSet2Input(1)">1</button>
+          <button class="option-btn" id="s2_2" onclick="handleSet2Input(2)">2</button>
+          <button class="option-btn" id="s2_3" onclick="handleSet2Input(3)">3</button>
+          <button class="option-btn" id="s2_4" onclick="handleSet2Input(4)">4</button>
+        </div>
+        <button class="btn btn-primary" style="margin-top:20px;" onclick="startSet2Sequence()">▶ Start Sequence</button>
+      `;
+    }
+    let s2Sequence = [], s2User = [], s2Ready = false;
+    function startSet2Sequence() {
+      const len = selectedStage === 'late' ? 2 : (selectedStage === 'middle' ? 3 : 4);
+      s2Sequence = []; s2User = []; s2Ready = false;
+      for (let i = 0; i < len; i++) s2Sequence.push(Math.floor(Math.random() * 4) + 1);
+
+      document.getElementById('set2Display').textContent = "WATCH...";
+      let i = 0;
+      const t = setInterval(() => {
+        if (i < s2Sequence.length) {
+          const btn = document.getElementById(`s2_${s2Sequence[i]}`);
+          btn.style.background = 'var(--primary)'; btn.style.color = 'white';
+          setTimeout(() => { btn.style.background = 'var(--surface)'; btn.style.color = 'var(--text)'; }, 400);
+          i++;
+        } else {
+          clearInterval(t);
+          document.getElementById('set2Display').textContent = "YOUR TURN";
+          s2Ready = true;
+        }
+      }, selectedStage === 'late' ? 900 : 600);
+    }
+    function handleSet2Input(num) {
+      if (!s2Ready) return;
+      s2User.push(num);
+      document.getElementById('set2Display').textContent = s2User.join(' ');
+      if (s2User.length === s2Sequence.length) {
+        s2Ready = false; attempts++;
+        if (s2User.join('') === s2Sequence.join('')) {
+          totalScore += 20; speakLady("Correct sequence! Set 2 complete.");
+          updateStats();
+          setTimeout(advanceToNextSet, 1200);
+        } else {
+          mistakes++; speakLady("Sequence error. Try again."); updateStats();
+        }
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       SET 3: VISUAL DISCRIMINATION & SEARCH
+       -------------------------------------------------------------------------- */
+    function renderSet3() {
+      const arena = document.getElementById('dynamicArena');
+      let items = [];
+      if (selectedStage === 'late') {
+        items = [{n:'Sun', i:'☀️'}, {n:'Heart', i:'💖'}, {n:'Star', i:'⭐'}];
+      } else if (selectedStage === 'middle') {
+        items = [{n:'Key', i:'🔑'}, {n:'Cup', i:'☕'}, {n:'Clock', i:'⏰'}, {n:'Book', i:'📖'}, {n:'Phone', i:'📱'}, {n:'Glasses', i:'👓'}];
+      } else {
+        items = [{n:'Key', i:'🔑'}, {n:'Cup', i:'☕'}, {n:'Clock', i:'⏰'}, {n:'Book', i:'📖'}, {n:'Phone', i:'📱'}, {n:'Glasses', i:'👓'}, {n:'Camera', i:'📷'}, {n:'Umbrella', i:'☂️'}, {n:'Watch', i:'⌚'}];
+      }
+
+      const target = items[Math.floor(Math.random() * items.length)];
+      arena.innerHTML = `
+        <div style="background:#fef3c7; border:2px solid #fde68a; padding:12px 24px; border-radius:12px; font-size:1.4rem; font-weight:800; color:#92400e; margin-bottom:16px;">
+          Find: ${target.i} ${target.n}
+        </div>
+        <div class="options-grid" id="set3Grid"></div>
+      `;
+      const grid = document.getElementById('set3Grid');
+      [...items].sort(() => Math.random() - 0.5).forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'option-btn';
+        btn.innerHTML = `${item.i} <span style="font-size:0.95rem;">${item.n}</span>`;
+        btn.onclick = () => {
+          attempts++;
+          if (item.n === target.n) {
+            totalScore += 20; speakLady("Found the item! Set 3 complete.");
+            updateStats();
+            setTimeout(advanceToNextSet, 1200);
+          } else {
+            mistakes++; speakLady("Not quite. Look carefully."); updateStats();
+          }
+        };
+        grid.appendChild(btn);
+      });
+    }
+
+    /* --------------------------------------------------------------------------
+       SET 4: COLOR HARMONY
+       -------------------------------------------------------------------------- */
+    function renderSet4() {
+      const arena = document.getElementById('dynamicArena');
+      const colors = [
+        { name: "Blue", bg: "#0284c7" },
+        { name: "Green", bg: "#10b981" },
+        { name: "Amber", bg: "#f59e0b" },
+        { name: "Purple", bg: "#8b5cf6" }
+      ];
+      const target = colors[Math.floor(Math.random() * (selectedStage === 'late' ? 2 : colors.length))];
+
+      arena.innerHTML = `
+        <h3 style="font-size:1.4rem; margin-bottom:16px;">Tap the Color: <strong>${target.name}</strong></h3>
+        <div class="options-grid">
+          ${colors.slice(0, selectedStage === 'late' ? 2 : 4).sort(() => Math.random() - 0.5).map(c => `
+            <button class="option-btn" style="background:${c.bg}; color:white; min-width:140px; height:80px;" onclick="handleSet4Tap('${c.name}', '${target.name}')">${c.name}</button>
+          `).join('')}
+        </div>
+      `;
+    }
+    function handleSet4Tap(chosen, target) {
+      attempts++;
+      if (chosen === target) {
+        totalScore += 20; speakLady("Color matched! Set 4 complete.");
+        updateStats();
+        setTimeout(advanceToNextSet, 1200);
+      } else {
+        mistakes++; speakLady("Try another color."); updateStats();
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       SET 5: NUMBER MATH & LOGIC PULSE
+       -------------------------------------------------------------------------- */
+    function renderSet5() {
+      const arena = document.getElementById('dynamicArena');
+      if (selectedStage === 'late') {
+        arena.innerHTML = `
+          <h3 style="font-size:1.4rem; margin-bottom:16px;">Touch the Number: <strong>1</strong></h3>
+          <div class="options-grid">
+            <button class="option-btn" style="font-size:2.5rem;" onclick="handleSet5Answer(1, 1)">1</button>
+            <button class="option-btn" style="font-size:2.5rem;" onclick="handleSet5Answer(2, 1)">2</button>
+          </div>
+        `;
+      } else if (selectedStage === 'middle') {
+        arena.innerHTML = `
+          <h3 style="font-size:1.6rem; margin-bottom:16px;">What is: <strong>4 + 3 = ?</strong></h3>
+          <div class="options-grid">
+            <button class="option-btn" onclick="handleSet5Answer(6, 7)">6</button>
+            <button class="option-btn" onclick="handleSet5Answer(7, 7)">7</button>
+            <button class="option-btn" onclick="handleSet5Answer(8, 7)">8</button>
+          </div>
+        `;
+      } else {
+        arena.innerHTML = `
+          <h3 style="font-size:1.6rem; margin-bottom:16px;">Quick Math: <strong>14 + 8 = ?</strong></h3>
+          <div class="options-grid">
+            <button class="option-btn" onclick="handleSet5Answer(21, 22)">21</button>
+            <button class="option-btn" onclick="handleSet5Answer(22, 22)">22</button>
+            <button class="option-btn" onclick="handleSet5Answer(23, 22)">23</button>
+          </div>
+        `;
+      }
+    }
+    function handleSet5Answer(ans, correct) {
+      attempts++;
+      if (ans === correct) {
+        totalScore += 20; speakLady("Calculated correctly! Set 5 complete.");
+        updateStats();
+        setTimeout(advanceToNextSet, 1200);
+      } else {
+        mistakes++; speakLady("Check your answer again."); updateStats();
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       SET 6: SPATIAL ORIENTATION (ARROWS)
+       -------------------------------------------------------------------------- */
+    function renderSet6() {
+      const arena = document.getElementById('dynamicArena');
+      if (selectedStage === 'late') {
+        arena.innerHTML = `
+          <h3 style="font-size:1.4rem; margin-bottom:16px;">Tap the Pointing Finger: <strong>👆</strong></h3>
+          <div class="options-grid">
+            <button class="option-btn" style="font-size:3rem;" onclick="handleSet6Tap(true)">👆</button>
+            <button class="option-btn" style="font-size:3rem;" onclick="handleSet6Tap(false)">✋</button>
+          </div>
+        `;
+      } else {
+        arena.innerHTML = `
+          <h3 style="font-size:1.4rem; margin-bottom:16px;">Tap the Arrow Pointing <strong>UP (⬆️)</strong></h3>
+          <div class="options-grid">
+            <button class="option-btn" style="font-size:2.5rem;" onclick="handleSet6Tap(false)">⬇️</button>
+            <button class="option-btn" style="font-size:2.5rem;" onclick="handleSet6Tap(true)">⬆️</button>
+            <button class="option-btn" style="font-size:2.5rem;" onclick="handleSet6Tap(false)">⬅️</button>
+            <button class="option-btn" style="font-size:2.5rem;" onclick="handleSet6Tap(false)">➡️</button>
+          </div>
+        `;
+      }
+    }
+    function handleSet6Tap(isCorrect) {
+      attempts++;
+      if (isCorrect) {
+        totalScore += 20; speakLady("Correct direction! Set 6 complete.");
+        updateStats();
+        setTimeout(advanceToNextSet, 1200);
+      } else {
+        mistakes++; speakLady("Look at the direction carefully."); updateStats();
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       SET 7: ODD ONE OUT CATEGORIZATION
+       -------------------------------------------------------------------------- */
+    function renderSet7() {
+      const arena = document.getElementById('dynamicArena');
+      if (selectedStage === 'late') {
+        arena.innerHTML = `
+          <h3 style="font-size:1.4rem; margin-bottom:16px;">Touch the Bright Flower: <strong>🌸</strong></h3>
+          <div class="options-grid">
+            <button class="option-btn" style="font-size:3rem;" onclick="handleSet7Tap(true)">🌸</button>
+            <button class="option-btn" style="font-size:3rem;" onclick="handleSet7Tap(false)">⚪</button>
+          </div>
+        `;
+      } else {
+        arena.innerHTML = `
+          <h3 style="font-size:1.4rem; margin-bottom:16px;">Which one is NOT an animal?</h3>
+          <div class="options-grid">
+            <button class="option-btn" style="font-size:2.5rem;" onclick="handleSet7Tap(false)">🐶</button>
+            <button class="option-btn" style="font-size:2.5rem;" onclick="handleSet7Tap(true)">🚗</button>
+            <button class="option-btn" style="font-size:2.5rem;" onclick="handleSet7Tap(false)">🐱</button>
+          </div>
+        `;
+      }
+    }
+    function handleSet7Tap(isOutlier) {
+      attempts++;
+      if (isOutlier) {
+        totalScore += 20; speakLady("You spotted the outlier! Set 7 complete.");
+        updateStats();
+        setTimeout(advanceToNextSet, 1200);
+      } else {
+        mistakes++; speakLady("That belongs to the group. Try the other one."); updateStats();
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       SET 8: REACTION CHALLENGE
+       -------------------------------------------------------------------------- */
+    function renderSet8() {
+      const arena = document.getElementById('dynamicArena');
+      arena.innerHTML = `
+        <div style="width:100%; height:260px; background:var(--surface); border:2px dashed var(--border); border-radius:16px; display:flex; align-items:center; justify-content:center; cursor:pointer;" onclick="startSet8Trial()">
+          <div class="big-target-btn" id="s8Circle" style="display:none;" onclick="handleSet8Tap(event)">TAP!</div>
+          <div id="s8Prompt" style="font-weight:700; color:var(--text-muted); font-size:1.2rem;">Click to Start Reaction Test</div>
+        </div>
+      `;
+    }
+    let s8Start = null;
+    function startSet8Trial() {
+      const c = document.getElementById('s8Circle');
+      const p = document.getElementById('s8Prompt');
+      c.style.display = 'none'; p.textContent = "Wait for the blue circle...";
+      setTimeout(() => {
+        c.style.display = 'flex';
+        s8Start = performance.now();
+        p.textContent = "";
+      }, 1200 + Math.random() * 2000);
+    }
+    function handleSet8Tap(e) {
+      e.stopPropagation();
+      const ms = Math.round(performance.now() - s8Start);
+      document.getElementById('s8Circle').style.display = 'none';
+      document.getElementById('s8Prompt').textContent = `Speed: ${ms} ms (+25 pts)`;
+      totalScore += 25; attempts++;
+      speakLady(`Reflex speed: ${ms} milliseconds. Set 8 complete!`);
+      updateStats();
+      setTimeout(advanceToNextSet, 1400);
+    }
+
+    /* --------------------------------------------------------------------------
+       SET 9: GEOMETRIC SHAPES
+       -------------------------------------------------------------------------- */
+    function renderSet9() {
+      const arena = document.getElementById('dynamicArena');
+      arena.innerHTML = `
+        <h3 style="font-size:1.4rem; margin-bottom:16px;">Match the Shape: <strong>⭐ Star</strong></h3>
+        <div class="options-grid">
+          <button class="option-btn" style="font-size:3rem;" onclick="handleSet9Tap(false)">⬛</button>
+          <button class="option-btn" style="font-size:3rem;" onclick="handleSet9Tap(true)">⭐</button>
+          <button class="option-btn" style="font-size:3rem;" onclick="handleSet9Tap(false)">🔵</button>
+        </div>
+      `;
+    }
+    function handleSet9Tap(isStar) {
+      attempts++;
+      if (isStar) {
+        totalScore += 20; speakLady("Shape identified! Set 9 complete.");
+        updateStats();
+        setTimeout(advanceToNextSet, 1200);
+      } else {
+        mistakes++; speakLady("Look for the star."); updateStats();
+      }
+    }
+
+    /* --------------------------------------------------------------------------
+       SET 10: GRAND FINALE
+       -------------------------------------------------------------------------- */
+    function renderSet10() {
+      const arena = document.getElementById('dynamicArena');
+      arena.innerHTML = `
+        <div style="font-size:6.5rem; cursor:pointer; user-select:none; animation:pulse 1.2s infinite alternate;" onclick="handleSet10Victory()">💖</div>
+        <h3 style="font-size:1.6rem; color:var(--primary); margin-top:20px;">Touch the Heart of Peace</h3>
+        <p style="color:var(--text-muted); font-size:0.95rem;">Celebrate your complete cognitive workout!</p>
+      `;
+    }
+    function handleSet10Victory() {
+      totalScore += 50; attempts++;
+      updateStats();
+      speakLady("Magnificent! You completed the Grand Finale!");
+      setTimeout(advanceToNextSet, 1000);
+    }
+
+    /* 5. CAMERA STREAM */
+    let camStream = null;
+    async function toggleCamera(enable) {
+      const vid = document.getElementById('cameraVideo');
+      if (enable) {
+        try {
+          camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+          vid.srcObject = camStream;
+        } catch(e) { alert("Camera not available or access denied."); }
+      } else {
+        if (camStream) camStream.getTracks().forEach(t => t.stop());
+        vid.srcObject = null;
+      }
+    }
+
+    // Welcome upon load
+    window.addEventListener('DOMContentLoaded', () => {
+      setTimeout(speakLadyGuide, 800);
+    });
+  </script>
+</body>
+</html>
